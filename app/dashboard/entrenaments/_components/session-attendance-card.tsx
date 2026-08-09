@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { toggleAttendance, deleteSession } from '../actions'
-import { formatSessionDateTime } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 
 export interface SquadMember {
   id: string
@@ -26,7 +26,7 @@ export function SessionAttendanceCard({
     <div className="rounded-2xl border border-zinc-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <div className="font-semibold text-zinc-900">{formatSessionDateTime(session.starts_at)}</div>
+          <div className="font-semibold text-zinc-900">{formatDateTime(session.starts_at)}</div>
           <div className="text-xs text-zinc-500">
             {session.place ?? 'Lloc per confirmar'}
             {session.focus ? ` · ${session.focus}` : ''}

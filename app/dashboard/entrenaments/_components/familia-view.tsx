@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
 import { oneOf } from '@/lib/relations'
 import { dayName } from '@/lib/schedule'
-import { formatSessionDateTime } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import { FamilyAbsenceToggle } from './family-absence-toggle'
 
 type TeamJoin = { name: string; sport: string }
@@ -93,7 +93,7 @@ export async function FamiliaView({ clubId }: { clubId: string }) {
                       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
                     >
                       <div>
-                        <div className="text-sm font-semibold text-zinc-900">{formatSessionDateTime(s.starts_at)}</div>
+                        <div className="text-sm font-semibold text-zinc-900">{formatDateTime(s.starts_at)}</div>
                         <div className="text-xs text-zinc-500">
                           {s.place ?? 'Lloc per confirmar'}
                           {s.focus ? ` · ${s.focus}` : ''}
