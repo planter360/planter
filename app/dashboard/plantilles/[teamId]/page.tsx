@@ -1,0 +1,78 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { getSession } from '@/lib/membership'
+import { createClient } from '@/lib/supabase/server'
+import { sportName } from '@/lib/sports'
+import { NewPlayerForm } from './_components/new-player-form'
+import { DeletePlayerButton } from './_components/delete-player-button'
+
+export default async function TeamPlayersPage({ params }: { params: Promise<{ teamId: string }> }) {
+  const { teamId } = await params
+  const { active } = await getSession()
+  if (!active) return null
+
+  const supabase = await createClient()
+
+  const { data: team } = await supabase
+    .from('teams')
+    .select('id, name, sport, coach_name')
+    .eq('id', teamId)
+    .eq('club_id', active.clubId)
+    .maybeSingle()
+
+  if (!team) notFound()
+
+  const { data: players } = await supabase
+    .from('players')
+    .select('id, full_name, dorsal, position, birth_year')
+    .eq('team_id', teamId)
+    .order('dorsal', { ascending: true, nullsFirst: false })
+
+  // players_write (alta) permet coordinador de la secció i entrenador de l'equip.
+  const canManage = active.role === 'coordinador' || active.role === 'entrenador'
+  // players_delete (baixa) només admin i coordinador — l'entrenador no hi té accés per RLS.
+  const canDelete = active.role === 'coordinador' || active.role === 'admin'
+
+  return (
+    <div>
+      <Link href="/dashboard/plantilles" className="text-xs font-semibold text-zinc-500 hover:underline">
+        ← Tots els equips
+      </Link>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900">{team.name}</h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            {sportName(team.sport)} · {team.coach_name ?? 'Entrenador/a per assignar'}
+          </p>
+        </div>
+        {canManage && <NewPlayerForm teamId={team.id} />}
+      </div>
+
+      {(!players || players.length === 0) && (
+        <p className="mt-6 text-sm text-zinc-600">
+          Encara no hi ha jugadors en aquest equip.
+          {canManage ? ' Fes servir «+ Nou jugador/a» per començar la plantilla.' : ''}
+        </p>
+      )}
+
+      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {(players ?? []).map((p) => (
+          <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-sm font-bold text-white">
+              {p.dorsal ?? '–'}
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-zinc-900">{p.full_name}</div>
+              <div className="text-xs text-zinc-500">
+                {p.position ?? 'Sense posició'}
+                {p.birth_year ? ` · ${p.birth_year}` : ''}
+              </div>
+            </div>
+            {canDelete && <DeletePlayerButton teamId={team.id} playerId={p.id} playerName={p.full_name} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
