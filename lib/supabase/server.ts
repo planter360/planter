@@ -10,9 +10,15 @@ export async function createClient() {
       cookies: {
         getAll() { return cookieStore.getAll() },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Called from a Server Component render, where cookies can't
+            // be written. Harmless as long as proxy.ts (which does the
+            // actual refresh) covers this route.
+          }
         },
       },
     }
