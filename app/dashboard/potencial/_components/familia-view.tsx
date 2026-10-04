@@ -1,0 +1,81 @@
+import { createClient } from '@/lib/supabase/server'
+import { oneOf } from '@/lib/relations'
+import type { Assessment } from './types'
+
+type TeamJoin = { name: string }
+
+export async function FamiliaView({ clubId }: { clubId: string }) {
+  const supabase = await createClient()
+
+  const { data: kids } = await supabase
+    .from('players')
+    .select('id, full_name, teams(name)')
+    .eq('club_id', clubId)
+    .order('full_name')
+
+  if (!kids || kids.length === 0) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-900">Potencial</h1>
+        <p className="mt-4 text-sm text-zinc-600">Encara no hi ha cap jugador vinculat al teu compte.</p>
+      </div>
+    )
+  }
+
+  const kidIds = kids.map((k) => k.id)
+  const { data: assessmentsData } = await supabase
+    .from('assessments')
+    .select('id, player_id, tec, fis, tac, men, notes, created_at')
+    .in('player_id', kidIds)
+    .order('created_at', { ascending: true })
+  const assessments = (assessmentsData ?? []) as Assessment[]
+
+  const byKid = new Map<string, Assessment[]>()
+  for (const a of assessments) {
+    const list = byKid.get(a.player_id) ?? []
+    list.push(a)
+    byKid.set(a.player_id, list)
+  }
+
+  const avg = (a: Assessment) => (a.tec + a.fis + a.tac + a.men) / 4
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-zinc-900">Potencial</h1>
+      <p className="mt-1 text-sm text-zinc-600">Evolució global dels teus fills.</p>
+
+      <div className="mt-6 space-y-4">
+        {kids.map((k) => {
+          const history = byKid.get(k.id) ?? []
+          const team = oneOf(k.teams as TeamJoin | TeamJoin[] | null)
+          const last = history[history.length - 1]
+          const prev = history[history.length - 2]
+          const trend =
+            last && prev ? (avg(last) > avg(prev) ? '↑ Millorant' : avg(last) < avg(prev) ? '↓ A reforçar' : '→ Estable') : null
+
+          return (
+            <div key={k.id} className="rounded-2xl border border-zinc-200 bg-white p-5">
+              <div className="font-semibold text-zinc-900">{k.full_name}</div>
+              <div className="text-xs text-zinc-500">{team?.name ?? '—'}</div>
+
+              {history.length === 0 || !last ? (
+                <p className="mt-3 text-sm text-zinc-600">Encara no hi ha cap valoració.</p>
+              ) : (
+                <div className="mt-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-emerald-700">{avg(last).toFixed(1)}</span>
+                    <span className="text-sm text-zinc-500">/ 5</span>
+                    {trend && <span className="ml-2 text-sm font-semibold text-zinc-600">{trend}</span>}
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-400">
+                    {history.length} valoracions des de {new Date(history[0].created_at).toLocaleDateString('ca-ES')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

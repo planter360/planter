@@ -1,8 +1,15 @@
 import { getSession } from '@/lib/membership'
-import { ModulePlaceholder } from '../_components/module-placeholder'
+import { AdminView } from './_components/admin-view'
+import { CoordinadorView } from './_components/coordinador-view'
+import { EntrenadorView } from './_components/entrenador-view'
+import { FamiliaView } from './_components/familia-view'
 
 export default async function PotencialPage() {
-  const { active } = await getSession()
+  const { user, active } = await getSession()
   if (!active) return null
-  return <ModulePlaceholder moduleId="potencial" role={active.role} title="Potencial" />
+
+  if (active.role === 'admin') return <AdminView clubId={active.clubId} />
+  if (active.role === 'coordinador') return <CoordinadorView clubId={active.clubId} section={active.section} />
+  if (active.role === 'entrenador') return <EntrenadorView clubId={active.clubId} userId={user.id} />
+  return <FamiliaView clubId={active.clubId} />
 }
