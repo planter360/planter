@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
+import { effectivePlace } from '@/lib/schedule'
 import type { Role } from '@/lib/access'
 import { ScheduleTabs } from './schedule-tabs'
 import { HorarisList, type TrainingRow } from './horaris-list'
@@ -18,7 +19,7 @@ export async function AdminCoordinadorView({
   const supabase = await createClient()
   const { data } = await supabase
     .from('trainings')
-    .select('id, days, time_txt, place, teams(name, sport)')
+    .select('id, days, time_txt, place, rain_place, rain_active, teams(name, sport)')
     .eq('club_id', clubId)
 
   const all: TrainingRow[] = (data ?? []).map((t) => {
@@ -29,7 +30,8 @@ export async function AdminCoordinadorView({
       sport: team?.sport ?? '',
       days: (t.days ?? []) as string[],
       time_txt: t.time_txt,
-      place: t.place,
+      place: effectivePlace(t),
+      rainActive: t.rain_active,
     }
   })
 

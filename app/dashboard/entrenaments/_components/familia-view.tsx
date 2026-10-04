@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
 import { oneOf } from '@/lib/relations'
-import { dayName } from '@/lib/schedule'
+import { dayName, effectivePlace } from '@/lib/schedule'
 import { formatDateTime } from '@/lib/format'
 import { FamilyAbsenceToggle } from './family-absence-toggle'
 
@@ -28,8 +28,20 @@ export async function FamiliaView({ clubId }: { clubId: string }) {
   const teamIds = [...new Set(kids.map((k) => k.team_id).filter((id): id is string => Boolean(id)))]
 
   const { data: trainings } = teamIds.length
-    ? await supabase.from('trainings').select('team_id, days, time_txt, place').in('team_id', teamIds)
-    : { data: [] as { team_id: string; days: string[]; time_txt: string; place: string }[] }
+    ? await supabase
+        .from('trainings')
+        .select('team_id, days, time_txt, place, rain_place, rain_active')
+        .in('team_id', teamIds)
+    : {
+        data: [] as {
+          team_id: string
+          days: string[]
+          time_txt: string
+          place: string
+          rain_place: string | null
+          rain_active: boolean
+        }[],
+      }
 
   const { data: sessions } = teamIds.length
     ? await supabase
@@ -77,7 +89,8 @@ export async function FamiliaView({ clubId }: { clubId: string }) {
 
               {training ? (
                 <p className="mt-2 text-sm text-zinc-600">
-                  {(training.days as string[]).map(dayName).join(', ')} · {training.time_txt} · {training.place}
+                  {(training.days as string[]).map(dayName).join(', ')} · {training.time_txt} · {effectivePlace(training)}
+                  {training.rain_active && <span className="ml-1 text-xs font-semibold text-blue-700">(pla de pluja)</span>}
                 </p>
               ) : (
                 <p className="mt-2 text-sm text-zinc-600">Encara no hi ha horari setmanal definit.</p>

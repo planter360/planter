@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
-import { dayName } from '@/lib/schedule'
+import { dayName, effectivePlace } from '@/lib/schedule'
 import { getTeamSquad } from '@/lib/squad'
 import { TrainingScheduleForm } from './training-schedule-form'
+import { RainPlanToggle } from './rain-plan-toggle'
 import { NewSessionForm } from './new-session-form'
 import { SessionAttendanceCard } from './session-attendance-card'
 
@@ -48,7 +49,7 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
 
   const { data: training } = await supabase
     .from('trainings')
-    .select('id, days, time_txt, place')
+    .select('id, days, time_txt, place, rain_place, rain_active')
     .eq('team_id', team.id)
     .maybeSingle()
 
@@ -86,13 +87,18 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
           initialDays={trainingDays}
           initialTime={training?.time_txt ?? ''}
           initialPlace={training?.place ?? ''}
+          initialRainPlace={training?.rain_place ?? ''}
         />
       </div>
 
       {training && (
-        <p className="mt-2 text-sm text-zinc-600">
-          {trainingDays.map(dayName).join(', ')} · {training.time_txt} · {training.place}
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-zinc-600">
+            {trainingDays.map(dayName).join(', ')} · {training.time_txt} · {effectivePlace(training)}
+            {training.rain_active && <span className="ml-1 text-xs font-semibold text-blue-700">(pla de pluja)</span>}
+          </p>
+          <RainPlanToggle teamId={team.id} rainPlace={training.rain_place} rainActive={training.rain_active} />
+        </div>
       )}
 
       <div className="mt-4 flex items-center justify-between">

@@ -6,6 +6,7 @@ export interface OccupancyTraining {
   days: string[]
   time_txt: string
   place: string
+  rainActive?: boolean
 }
 
 export function OccupancyGrid({ trainings }: { trainings: OccupancyTraining[] }) {
@@ -46,6 +47,7 @@ export function OccupancyGrid({ trainings }: { trainings: OccupancyTraining[] })
                       >
                         <div className="font-semibold" style={{ fontSize: 11 }}>
                           {it.team_name}
+                          {it.rainActive && <span className="ml-1 text-blue-700">(pluja)</span>}
                         </div>
                         <div className="text-zinc-500" style={{ fontSize: 10 }}>
                           {it.time_txt}

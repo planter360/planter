@@ -9,11 +9,13 @@ export function TrainingScheduleForm({
   initialDays,
   initialTime,
   initialPlace,
+  initialRainPlace,
 }: {
   teamId: string
   initialDays: string[]
   initialTime: string
   initialPlace: string
+  initialRainPlace: string
 }) {
   const [open, setOpen] = useState(false)
 
@@ -54,6 +56,15 @@ export function TrainingScheduleForm({
           name="place"
           defaultValue={initialPlace}
           placeholder="Camp Municipal 1"
+          className="mt-1 w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+        />
+      </label>
+      <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+        Lloc alternatiu (pla de pluja)
+        <input
+          name="rain_place"
+          defaultValue={initialRainPlace}
+          placeholder="Pavelló cobert"
           className="mt-1 w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
       </label>

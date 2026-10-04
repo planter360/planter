@@ -24,3 +24,13 @@ export function timeRangesOverlap(a: string, b: string): boolean {
   if (!ra || !rb) return false
   return ra[0] < rb[1] && rb[0] < ra[1]
 }
+
+export interface RainAwarePlace {
+  place: string
+  rain_place: string | null
+  rain_active: boolean
+}
+
+export function effectivePlace(t: RainAwarePlace): string {
+  return t.rain_active && t.rain_place ? t.rain_place : t.place
+}

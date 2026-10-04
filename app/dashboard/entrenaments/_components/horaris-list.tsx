@@ -7,6 +7,7 @@ export interface TrainingRow {
   days: string[]
   time_txt: string
   place: string
+  rainActive?: boolean
 }
 
 export function HorarisList({ trainings }: { trainings: TrainingRow[] }) {
@@ -25,6 +26,9 @@ export function HorarisList({ trainings }: { trainings: TrainingRow[] }) {
           <span className="min-w-40 flex-1 text-sm text-zinc-600">{t.days.map(dayName).join(', ')}</span>
           <span className="text-sm font-medium text-zinc-900">{t.time_txt}</span>
           <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">{t.place}</span>
+          {t.rainActive && (
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Pla de pluja</span>
+          )}
         </div>
       ))}
     </div>

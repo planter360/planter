@@ -11,6 +11,7 @@ export async function saveTrainingSchedule(teamId: string, formData: FormData) {
   const days = formData.getAll('days').map(String)
   const timeText = String(formData.get('time_txt') ?? '').trim()
   const place = String(formData.get('place') ?? '').trim()
+  const rainPlace = String(formData.get('rain_place') ?? '').trim()
   if (!timeText || !place) return
 
   const supabase = await createClient()
@@ -19,15 +20,26 @@ export async function saveTrainingSchedule(teamId: string, formData: FormData) {
   if (existing) {
     const { error } = await supabase
       .from('trainings')
-      .update({ days, time_txt: timeText, place })
+      .update({ days, time_txt: timeText, place, rain_place: rainPlace || null })
       .eq('id', existing.id)
     if (error) throw new Error(error.message)
   } else {
     const { error } = await supabase
       .from('trainings')
-      .insert({ club_id: active.clubId, team_id: teamId, days, time_txt: timeText, place })
+      .insert({ club_id: active.clubId, team_id: teamId, days, time_txt: timeText, place, rain_place: rainPlace || null })
     if (error) throw new Error(error.message)
   }
+
+  revalidatePath('/dashboard/entrenaments')
+}
+
+export async function setRainPlan(teamId: string, rainActive: boolean) {
+  const { active } = await getSession()
+  if (!active || active.role !== 'entrenador') throw new Error('No autoritzat')
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('trainings').update({ rain_active: rainActive }).eq('team_id', teamId)
+  if (error) throw new Error(error.message)
 
   revalidatePath('/dashboard/entrenaments')
 }
