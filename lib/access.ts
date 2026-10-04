@@ -47,7 +47,7 @@ export const ACCESS: Record<ModuleId, Record<Role, AccessLevel>> = {
   plantilles: { admin: 'read', coordinador: 'full', entrenador: 'full', familia: 'partial' },
   entrenaments: { admin: 'read', coordinador: 'read', entrenador: 'full', familia: 'partial' },
   partits: { admin: 'read', coordinador: 'full', entrenador: 'full', familia: 'partial' },
-  scouting: { admin: 'read', coordinador: 'full', entrenador: 'full', familia: null },
+  scouting: { admin: 'full', coordinador: 'full', entrenador: 'full', familia: null },
   potencial: { admin: 'read', coordinador: 'full', entrenador: 'full', familia: 'partial' },
   comunicacions: { admin: 'full', coordinador: 'full', entrenador: 'full', familia: 'partial' },
   llicencies: { admin: 'read', coordinador: null, entrenador: null, familia: null },
@@ -73,9 +73,9 @@ export const VIS_NOTE: Partial<Record<ModuleId, Partial<Record<Role, string>>>> 
     familia: 'Veus convocatòries, horaris i resultats dels partits dels teus fills.',
   },
   scouting: {
-    admin: 'Informes de rivals de tot el club (lectura).',
-    coordinador: 'Crees i comparteixes informes de rivals de la teva secció.',
-    entrenador: 'Crees informes de rivals i plans de partit del teu equip.',
+    admin: 'Jugadors vigilats i plans de partit de tot el club.',
+    coordinador: 'Jugadors vigilats i plans de partit de la teva secció, compartits amb els entrenadors.',
+    entrenador: 'Fitxes de seguiment de jugadors i el pla de partit del teu equip.',
   },
   potencial: {
     admin: 'Valoracions i històrics de potencial de tot el club (lectura).',
