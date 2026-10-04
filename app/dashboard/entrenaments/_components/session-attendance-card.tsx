@@ -3,12 +3,7 @@
 import { useTransition } from 'react'
 import { toggleAttendance, deleteSession } from '../actions'
 import { formatDateTime } from '@/lib/format'
-
-export interface SquadMember {
-  id: string
-  full_name: string
-  dorsal: number | null
-}
+import type { SquadMember } from '@/lib/squad'
 
 export function SessionAttendanceCard({
   session,

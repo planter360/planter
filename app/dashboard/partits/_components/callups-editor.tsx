@@ -2,12 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { saveCallups } from '../actions'
-
-export interface SquadMember {
-  id: string
-  full_name: string
-  dorsal: number | null
-}
+import type { SquadMember } from '@/lib/squad'
 
 export function CallupsEditor({
   matchId,

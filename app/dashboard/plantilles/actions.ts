@@ -71,3 +71,28 @@ export async function deletePlayer(teamId: string, playerId: string) {
 
   revalidatePath(`/dashboard/plantilles/${teamId}`)
 }
+
+export async function addSecondaryTeam(playerId: string, teamId: string) {
+  const { active } = await getSession()
+  if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
+  if (!teamId) return
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('player_teams')
+    .insert({ club_id: active.clubId, player_id: playerId, team_id: teamId })
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/dashboard/plantilles')
+}
+
+export async function removeSecondaryTeam(playerId: string, teamId: string) {
+  const { active } = await getSession()
+  if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('player_teams').delete().eq('player_id', playerId).eq('team_id', teamId)
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/dashboard/plantilles')
+}

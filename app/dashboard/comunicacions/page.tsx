@@ -28,11 +28,21 @@ export default async function ComunicacionsPage() {
   if (active.role === 'familia') {
     const { data: kids } = await supabase
       .from('players')
-      .select('team_id, teams(id, sport)')
+      .select('id, team_id, teams(id, sport)')
       .eq('club_id', active.clubId)
-    kidTeams = (kids ?? [])
+    const primaryTeams = (kids ?? [])
       .map((k) => oneOf(k.teams as TeamJoin | TeamJoin[] | null))
       .filter((t): t is TeamJoin => Boolean(t))
+
+    const kidIds = (kids ?? []).map((k) => k.id)
+    const { data: secondaryLinks } = kidIds.length
+      ? await supabase.from('player_teams').select('teams(id, sport)').in('player_id', kidIds)
+      : { data: [] as { teams: TeamJoin | TeamJoin[] | null }[] }
+    const secondaryTeams = (secondaryLinks ?? [])
+      .map((link) => oneOf(link.teams as TeamJoin | TeamJoin[] | null))
+      .filter((t): t is TeamJoin => Boolean(t))
+
+    kidTeams = [...primaryTeams, ...secondaryTeams]
   }
 
   const { data } = await supabase

@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
 import { formatDateTime } from '@/lib/format'
+import { getTeamSquad } from '@/lib/squad'
 import { MatchStatusTag } from './match-status-tag'
 import { NewMatchForm } from './new-match-form'
 import { ResultForm } from './result-form'
-import { CallupsEditor, type SquadMember } from './callups-editor'
+import { CallupsEditor } from './callups-editor'
 
 export async function EntrenadorPartitsView({ clubId, userId }: { clubId: string; userId: string }) {
   const supabase = await createClient()
@@ -49,11 +50,7 @@ export async function EntrenadorPartitsView({ clubId, userId }: { clubId: string
 async function TeamMatches({ team }: { team: { id: string; name: string; sport: string } }) {
   const supabase = await createClient()
 
-  const { data: squad } = await supabase
-    .from('players')
-    .select('id, full_name, dorsal')
-    .eq('team_id', team.id)
-    .order('dorsal', { ascending: true, nullsFirst: false })
+  const squad = await getTeamSquad(team.id)
 
   const { data: matches } = await supabase
     .from('matches')
@@ -72,8 +69,6 @@ async function TeamMatches({ team }: { team: { id: string; name: string; sport: 
     list.push(c.player_id)
     calledUpByMatch.set(c.match_id, list)
   }
-
-  const squadList: SquadMember[] = squad ?? []
 
   return (
     <section>
@@ -101,7 +96,7 @@ async function TeamMatches({ team }: { team: { id: string; name: string; sport: 
               )}
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <CallupsEditor matchId={m.id} squad={squadList} calledUpIds={calledUpByMatch.get(m.id) ?? []} />
+              <CallupsEditor matchId={m.id} squad={squad} calledUpIds={calledUpByMatch.get(m.id) ?? []} />
               <ResultForm matchId={m.id} status={m.status} result={m.result} />
             </div>
           </div>

@@ -2,9 +2,22 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSession } from '@/lib/membership'
 import { createClient } from '@/lib/supabase/server'
+import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
 import { NewPlayerForm } from './_components/new-player-form'
 import { DeletePlayerButton } from './_components/delete-player-button'
+import { LinkSecondaryTeam } from './_components/link-secondary-team'
+import { RemoveSecondaryLink } from './_components/remove-secondary-link'
+
+type HomeTeamJoin = { name: string }
+type SecondaryPlayerJoin = {
+  id: string
+  full_name: string
+  dorsal: number | null
+  position: string | null
+  birth_year: number | null
+  teams: HomeTeamJoin | HomeTeamJoin[] | null
+}
 
 export default async function TeamPlayersPage({ params }: { params: Promise<{ teamId: string }> }) {
   const { teamId } = await params
@@ -28,10 +41,31 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
     .eq('team_id', teamId)
     .order('dorsal', { ascending: true, nullsFirst: false })
 
+  const { data: secondaryLinks } = await supabase
+    .from('player_teams')
+    .select('players(id, full_name, dorsal, position, birth_year, teams(name))')
+    .eq('team_id', teamId)
+
+  const secondaryPlayers = (secondaryLinks ?? [])
+    .map((link) => oneOf(link.players as SecondaryPlayerJoin | SecondaryPlayerJoin[] | null))
+    .filter((p): p is SecondaryPlayerJoin => Boolean(p))
+
   // players_write (alta) permet coordinador de la secció i entrenador de l'equip.
   const canManage = active.role === 'coordinador' || active.role === 'entrenador'
   // players_delete (baixa) només admin i coordinador — l'entrenador no hi té accés per RLS.
   const canDelete = active.role === 'coordinador' || active.role === 'admin'
+  const canLinkTeams = active.role === 'coordinador'
+
+  let otherTeamOptions: { id: string; name: string }[] = []
+  if (canLinkTeams) {
+    const { data: otherTeams } = await supabase
+      .from('teams')
+      .select('id, name')
+      .eq('club_id', active.clubId)
+      .eq('sport', active.section ?? '')
+      .neq('id', teamId)
+    otherTeamOptions = otherTeams ?? []
+  }
 
   return (
     <div>
@@ -58,21 +92,46 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {(players ?? []).map((p) => (
-          <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-sm font-bold text-white">
-              {p.dorsal ?? '–'}
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold text-zinc-900">{p.full_name}</div>
-              <div className="text-xs text-zinc-500">
-                {p.position ?? 'Sense posició'}
-                {p.birth_year ? ` · ${p.birth_year}` : ''}
+          <div key={p.id} className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-sm font-bold text-white">
+                {p.dorsal ?? '–'}
               </div>
+              <div className="flex-1">
+                <div className="font-semibold text-zinc-900">{p.full_name}</div>
+                <div className="text-xs text-zinc-500">
+                  {p.position ?? 'Sense posició'}
+                  {p.birth_year ? ` · ${p.birth_year}` : ''}
+                </div>
+              </div>
+              {canDelete && <DeletePlayerButton teamId={team.id} playerId={p.id} playerName={p.full_name} />}
             </div>
-            {canDelete && <DeletePlayerButton teamId={team.id} playerId={p.id} playerName={p.full_name} />}
+            {canLinkTeams && <LinkSecondaryTeam playerId={p.id} teamOptions={otherTeamOptions} />}
           </div>
         ))}
       </div>
+
+      {secondaryPlayers.length > 0 && (
+        <>
+          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            Jugadors d&apos;un altre equip que també hi entrenen
+          </h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {secondaryPlayers.map((p) => (
+              <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-dashed border-zinc-300 bg-white p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-400 text-sm font-bold text-white">
+                  {p.dorsal ?? '–'}
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-zinc-900">{p.full_name}</div>
+                  <div className="text-xs text-zinc-500">Equip principal: {oneOf(p.teams)?.name ?? '—'}</div>
+                </div>
+                {canLinkTeams && <RemoveSecondaryLink playerId={p.id} teamId={team.id} playerName={p.full_name} />}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

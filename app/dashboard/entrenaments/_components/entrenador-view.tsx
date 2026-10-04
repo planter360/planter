@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
 import { dayName } from '@/lib/schedule'
+import { getTeamSquad } from '@/lib/squad'
 import { TrainingScheduleForm } from './training-schedule-form'
 import { NewSessionForm } from './new-session-form'
-import { SessionAttendanceCard, type SquadMember } from './session-attendance-card'
+import { SessionAttendanceCard } from './session-attendance-card'
 
 export async function EntrenadorView({ clubId, userId }: { clubId: string; userId: string }) {
   const supabase = await createClient()
@@ -51,11 +52,7 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
     .eq('team_id', team.id)
     .maybeSingle()
 
-  const { data: squad } = await supabase
-    .from('players')
-    .select('id, full_name, dorsal')
-    .eq('team_id', team.id)
-    .order('dorsal', { ascending: true, nullsFirst: false })
+  const squad = await getTeamSquad(team.id)
 
   const { data: sessions } = await supabase
     .from('sessions')
@@ -75,7 +72,6 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
     attendanceBySession.set(row.session_id, map)
   }
 
-  const squadList: SquadMember[] = squad ?? []
   const trainingDays = (training?.days ?? []) as string[]
 
   return (
@@ -115,7 +111,7 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
           <SessionAttendanceCard
             key={s.id}
             session={s}
-            squad={squadList}
+            squad={squad}
             attendance={attendanceBySession.get(s.id) ?? {}}
           />
         ))}
