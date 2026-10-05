@@ -6,8 +6,18 @@ import { MatchStatusTag } from './match-status-tag'
 import { NewMatchForm } from './new-match-form'
 import { ResultForm } from './result-form'
 import { CallupsEditor } from './callups-editor'
+import { PlaceLink } from '../../_components/place-link'
+import type { Installation } from '@/lib/installations'
 
-export async function EntrenadorPartitsView({ clubId, userId }: { clubId: string; userId: string }) {
+export async function EntrenadorPartitsView({
+  clubId,
+  userId,
+  installations,
+}: {
+  clubId: string
+  userId: string
+  installations: Installation[]
+}) {
   const supabase = await createClient()
 
   const { data: staffRows } = await supabase.from('team_staff').select('team_id').eq('user_id', userId)
@@ -36,18 +46,24 @@ export async function EntrenadorPartitsView({ clubId, userId }: { clubId: string
           <h1 className="text-2xl font-bold text-zinc-900">Partits</h1>
           <p className="mt-1 text-sm text-zinc-600">Crees partits i fas les convocatòries del teu equip.</p>
         </div>
-        <NewMatchForm teams={teams ?? []} />
+        <NewMatchForm teams={teams ?? []} installations={installations} />
       </div>
       <div className="mt-6 space-y-10">
         {(teams ?? []).map((team) => (
-          <TeamMatches key={team.id} team={team} />
+          <TeamMatches key={team.id} team={team} installations={installations} />
         ))}
       </div>
     </div>
   )
 }
 
-async function TeamMatches({ team }: { team: { id: string; name: string; sport: string } }) {
+async function TeamMatches({
+  team,
+  installations,
+}: {
+  team: { id: string; name: string; sport: string }
+  installations: Installation[]
+}) {
   const supabase = await createClient()
 
   const squad = await getTeamSquad(team.id)
@@ -86,7 +102,8 @@ async function TeamMatches({ team }: { team: { id: string; name: string; sport: 
               <div>
                 <div className="font-semibold text-zinc-900">vs {m.rival}</div>
                 <div className="text-xs text-zinc-500">
-                  {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} · {m.place ?? 'Lloc per confirmar'}
+                  {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
+                  <PlaceLink place={m.place} installations={installations} />
                 </div>
               </div>
               {m.result ? (

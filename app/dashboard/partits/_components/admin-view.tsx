@@ -2,10 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
 import { formatDateTime } from '@/lib/format'
 import { MatchStatusTag } from './match-status-tag'
+import { PlaceLink } from '../../_components/place-link'
+import type { Installation } from '@/lib/installations'
 
 type TeamJoin = { name: string; sport: string }
 
-export async function AdminPartitsView({ clubId }: { clubId: string }) {
+export async function AdminPartitsView({ clubId, installations }: { clubId: string; installations: Installation[] }) {
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -33,7 +35,8 @@ export async function AdminPartitsView({ clubId }: { clubId: string }) {
                 {m.team_name} vs {m.rival}
               </div>
               <div className="text-xs text-zinc-500">
-                {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} · {m.place ?? 'Lloc per confirmar'}
+                {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
+                <PlaceLink place={m.place} installations={installations} />
               </div>
             </div>
             {m.result ? (

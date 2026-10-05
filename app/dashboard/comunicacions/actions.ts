@@ -14,29 +14,53 @@ export async function sendAnnouncement(formData: FormData) {
   if (!title) return
 
   const supabase = await createClient()
+  const validSportIds = new Set<string>(SPORTS.map((s) => s.id))
 
-  // The scope decides who receives this — it's always derived from the
-  // sender's actual role/section/team on the server, never taken as-is
-  // from the form, so a forged request can't broadcast beyond what the
-  // role is allowed to reach.
+  // El scope decideix qui ho rep — sempre es deriva del rol/secció/equips
+  // reals del remitent al servidor, mai es pren tal qual del formulari,
+  // perquè una petició manipulada no pugui emetre més enllà del que el
+  // rol té permès.
   let scope: string
   if (active.role === 'admin') {
     const target = String(formData.get('target') ?? 'club')
-    const validSectionTargets = SPORTS.map((s) => `section:${s.id}`)
-    scope = target === 'families' || validSectionTargets.includes(target) ? target : 'club'
+    if (target === 'families') {
+      scope = 'families'
+    } else if (target === 'section') {
+      const sectionValue = String(formData.get('target_section') ?? '')
+      if (!validSportIds.has(sectionValue)) throw new Error('Secció no vàlida')
+      scope = `section:${sectionValue}`
+    } else if (target === 'teams') {
+      const teamIds = formData.getAll('team_ids').map(String).filter(Boolean)
+      if (teamIds.length === 0) throw new Error('Selecciona almenys un equip')
+      const { data: validTeams } = await supabase.from('teams').select('id').eq('club_id', active.clubId).in('id', teamIds)
+      if (!validTeams || validTeams.length !== teamIds.length) throw new Error('Equip no vàlid')
+      scope = `teams:${teamIds.join(',')}`
+    } else {
+      scope = 'club'
+    }
   } else if (active.role === 'coordinador') {
     if (!active.section) throw new Error('Falta la secció del coordinador')
-    scope = `section:${active.section}`
+    const target = String(formData.get('target') ?? 'section')
+    if (target === 'teams') {
+      const teamIds = formData.getAll('team_ids').map(String).filter(Boolean)
+      if (teamIds.length === 0) throw new Error('Selecciona almenys un equip')
+      const { data: validTeams } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('club_id', active.clubId)
+        .eq('sport', active.section)
+        .in('id', teamIds)
+      if (!validTeams || validTeams.length !== teamIds.length) throw new Error('Equip no vàlid per a la teva secció')
+      scope = `teams:${teamIds.join(',')}`
+    } else {
+      scope = `section:${active.section}`
+    }
   } else {
-    const teamId = String(formData.get('team_id') ?? '')
-    const { data: staffRow } = await supabase
-      .from('team_staff')
-      .select('team_id')
-      .eq('user_id', user.id)
-      .eq('team_id', teamId)
-      .maybeSingle()
-    if (!staffRow) throw new Error('No gestiones aquest equip')
-    scope = `team:${teamId}`
+    const teamIds = formData.getAll('team_ids').map(String).filter(Boolean)
+    if (teamIds.length === 0) throw new Error('Selecciona almenys un equip')
+    const { data: staffRows } = await supabase.from('team_staff').select('team_id').eq('user_id', user.id).in('team_id', teamIds)
+    if (!staffRows || staffRows.length !== teamIds.length) throw new Error('No gestiones algun d\'aquests equips')
+    scope = `teams:${teamIds.join(',')}`
   }
 
   const { error } = await supabase.from('announcements').insert({

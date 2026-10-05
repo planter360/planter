@@ -45,6 +45,23 @@ export default async function ComunicacionsPage() {
     kidTeams = [...primaryTeams, ...secondaryTeams]
   }
 
+  let sectionTeams: { id: string; name: string }[] = []
+  if (active.role === 'coordinador' && active.section) {
+    const { data } = await supabase
+      .from('teams')
+      .select('id, name')
+      .eq('club_id', active.clubId)
+      .eq('sport', active.section)
+      .order('name')
+    sectionTeams = data ?? []
+  }
+
+  let allTeams: { id: string; name: string; sport: string }[] = []
+  if (active.role === 'admin') {
+    const { data } = await supabase.from('teams').select('id, name, sport').eq('club_id', active.clubId).order('name')
+    allTeams = data ?? []
+  }
+
   const { data } = await supabase
     .from('announcements')
     .select('id, scope, title, body, created_at, profiles(full_name)')
@@ -58,6 +75,9 @@ export default async function ComunicacionsPage() {
   for (const row of data ?? []) {
     const parsed = parseScope(row.scope)
     if (parsed.kind === 'team' && !teamNameCache.has(parsed.value)) unresolvedTeamIds.add(parsed.value)
+    if (parsed.kind === 'teams') {
+      for (const id of parsed.value) if (!teamNameCache.has(id)) unresolvedTeamIds.add(id)
+    }
   }
   if (unresolvedTeamIds.size > 0) {
     const { data: extraTeams } = await supabase.from('teams').select('id, name').in('id', [...unresolvedTeamIds])
@@ -80,6 +100,11 @@ export default async function ComunicacionsPage() {
       if (active.role === 'familia') return kidTeams.some((t) => t.id === parsed.value)
       return false
     }
+    if (parsed.kind === 'teams') {
+      if (active.role === 'entrenador') return myTeams.some((t) => parsed.value.includes(t.id))
+      if (active.role === 'familia') return kidTeams.some((t) => parsed.value.includes(t.id))
+      return false
+    }
     return false
   })
 
@@ -90,6 +115,9 @@ export default async function ComunicacionsPage() {
     if (parsed.kind === 'families') scopeLabel = 'Famílies'
     else if (parsed.kind === 'section') scopeLabel = `Secció ${sportName(parsed.value)}`
     else if (parsed.kind === 'team') scopeLabel = teamNameCache.get(parsed.value) ?? 'Equip'
+    else if (parsed.kind === 'teams') {
+      scopeLabel = parsed.value.map((id) => teamNameCache.get(id) ?? 'Equip').join(', ')
+    }
     return {
       id: row.id,
       title: row.title,
@@ -119,6 +147,8 @@ export default async function ComunicacionsPage() {
             role={active.role}
             sectionLabel={active.role === 'coordinador' ? sportName(active.section ?? '') : undefined}
             teams={active.role === 'entrenador' ? myTeams : undefined}
+            sectionTeams={active.role === 'coordinador' ? sectionTeams : undefined}
+            allTeams={active.role === 'admin' ? allTeams : undefined}
           />
         )}
       </div>

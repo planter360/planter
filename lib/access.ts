@@ -21,6 +21,7 @@ export type ModuleId =
   | 'potencial'
   | 'comunicacions'
   | 'llicencies'
+  | 'installations'
 
 export interface ModuleDef {
   id: ModuleId
@@ -37,6 +38,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'scouting', label: 'Scouting', href: '/dashboard/scouting' },
   { id: 'potencial', label: 'Potencial', href: '/dashboard/potencial' },
   { id: 'comunicacions', label: 'Comunicacions', href: '/dashboard/comunicacions' },
+  { id: 'installations', label: 'Instal·lacions', href: '/dashboard/installations' },
   { id: 'llicencies', label: 'Llicències', href: '/dashboard/llicencies' },
 ]
 
@@ -50,6 +52,7 @@ export const ACCESS: Record<ModuleId, Record<Role, AccessLevel>> = {
   scouting: { admin: 'full', coordinador: 'full', entrenador: 'full', familia: null },
   potencial: { admin: 'read', coordinador: 'full', entrenador: 'full', familia: 'partial' },
   comunicacions: { admin: 'full', coordinador: 'full', entrenador: 'full', familia: 'partial' },
+  installations: { admin: 'full', coordinador: 'full', entrenador: null, familia: null },
   llicencies: { admin: 'read', coordinador: null, entrenador: null, familia: null },
 }
 
@@ -91,6 +94,10 @@ export const VIS_NOTE: Partial<Record<ModuleId, Partial<Record<Role, string>>>> 
   },
   llicencies: {
     admin: "Veus el pla contractat del club, l'ús actual i les factures.",
+  },
+  installations: {
+    admin: "Gestiones el llistat d'instal·lacions del club, amb la seva adreça.",
+    coordinador: "Gestiones el llistat d'instal·lacions del club, amb la seva adreça.",
   },
 }
 

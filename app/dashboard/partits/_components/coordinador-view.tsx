@@ -5,10 +5,20 @@ import { sportName } from '@/lib/sports'
 import { MatchStatusTag } from './match-status-tag'
 import { NewMatchForm } from './new-match-form'
 import { ResultForm } from './result-form'
+import { PlaceLink } from '../../_components/place-link'
+import type { Installation } from '@/lib/installations'
 
 type TeamJoin = { id: string; name: string; sport: string }
 
-export async function CoordinadorPartitsView({ clubId, section }: { clubId: string; section: string | null }) {
+export async function CoordinadorPartitsView({
+  clubId,
+  section,
+  installations,
+}: {
+  clubId: string
+  section: string | null
+  installations: Installation[]
+}) {
   const supabase = await createClient()
 
   const { data: teams } = await supabase.from('teams').select('id, name, sport').eq('club_id', clubId).eq('sport', section ?? '')
@@ -42,7 +52,7 @@ export async function CoordinadorPartitsView({ clubId, section }: { clubId: stri
             Calendari de la secció {sportName(section ?? '')}: crea partits i revisa convocatòries.
           </p>
         </div>
-        <NewMatchForm teams={teams ?? []} />
+        <NewMatchForm teams={teams ?? []} installations={installations} />
       </div>
 
       <div className="mt-6 space-y-3">
@@ -55,7 +65,8 @@ export async function CoordinadorPartitsView({ clubId, section }: { clubId: stri
                   {m.team_name} vs {m.rival}
                 </div>
                 <div className="text-xs text-zinc-500">
-                  {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} · {m.place ?? 'Lloc per confirmar'}
+                  {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
+                  <PlaceLink place={m.place} installations={installations} />
                 </div>
               </div>
               <div className="flex items-center gap-3">

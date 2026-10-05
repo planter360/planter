@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { saveTrainingSchedule } from '../actions'
 import { DayPicker } from './day-picker'
+import { PlaceSelect } from '../../_components/place-select'
+import type { Installation } from '@/lib/installations'
 
 export function TrainingScheduleForm({
   teamId,
@@ -10,12 +12,14 @@ export function TrainingScheduleForm({
   initialTime,
   initialPlace,
   initialRainPlace,
+  installations,
 }: {
   teamId: string
   initialDays: string[]
   initialTime: string
   initialPlace: string
   initialRainPlace: string
+  installations: Installation[]
 }) {
   const [open, setOpen] = useState(false)
 
@@ -52,20 +56,22 @@ export function TrainingScheduleForm({
       </label>
       <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
         Instal·lació
-        <input
+        <PlaceSelect
           name="place"
+          installations={installations}
           defaultValue={initialPlace}
           placeholder="Camp Municipal 1"
-          className="mt-1 w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+          className="w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
       <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
         Lloc alternatiu (pla de pluja)
-        <input
+        <PlaceSelect
           name="rain_place"
+          installations={installations}
           defaultValue={initialRainPlace}
           placeholder="Pavelló cobert"
-          className="mt-1 w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+          className="w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
       <div className="ml-auto flex gap-2">

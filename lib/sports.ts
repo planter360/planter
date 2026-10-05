@@ -4,6 +4,7 @@ export const SPORTS = [
   { id: 'handbol', name: 'Handbol' },
   { id: 'volei', name: 'Vòlei' },
   { id: 'futsal', name: 'Futsal' },
+  { id: 'hockey', name: 'Hockey' }
 ] as const
 
 export type Sport = (typeof SPORTS)[number]['id']

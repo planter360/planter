@@ -2,8 +2,16 @@
 
 import { useState } from 'react'
 import { createMatch } from '../actions'
+import { PlaceSelect } from '../../_components/place-select'
+import type { Installation } from '@/lib/installations'
 
-export function NewMatchForm({ teams }: { teams: { id: string; name: string }[] }) {
+export function NewMatchForm({
+  teams,
+  installations,
+}: {
+  teams: { id: string; name: string }[]
+  installations: Installation[]
+}) {
   const [open, setOpen] = useState(false)
 
   if (teams.length === 0) return null
@@ -67,10 +75,11 @@ export function NewMatchForm({ teams }: { teams: { id: string; name: string }[] 
       </label>
       <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
         Lloc
-        <input
+        <PlaceSelect
           name="place"
+          installations={installations}
           placeholder="Casa / Fora · Camp..."
-          className="mt-1 w-44 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+          className="w-44 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
       <div className="ml-auto flex gap-2">

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sportName } from '@/lib/sports'
 import { dayName, effectivePlace } from '@/lib/schedule'
 import { getTeamSquad } from '@/lib/squad'
+import { getInstallations, type Installation } from '@/lib/installations'
 import { TrainingScheduleForm } from './training-schedule-form'
 import { RainPlanToggle } from './rain-plan-toggle'
 import { NewSessionForm } from './new-session-form'
@@ -31,20 +32,28 @@ export async function EntrenadorView({ clubId, userId }: { clubId: string; userI
     .eq('club_id', clubId)
     .order('name')
 
+  const installations = await getInstallations(clubId)
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-zinc-900">Entrenaments</h1>
       <p className="mt-1 text-sm text-zinc-600">Horari setmanal, sessions i assistència del teu equip.</p>
       <div className="mt-6 space-y-10">
         {(teams ?? []).map((team) => (
-          <TeamTrainingSection key={team.id} team={team} />
+          <TeamTrainingSection key={team.id} team={team} installations={installations} />
         ))}
       </div>
     </div>
   )
 }
 
-async function TeamTrainingSection({ team }: { team: { id: string; name: string; sport: string } }) {
+async function TeamTrainingSection({
+  team,
+  installations,
+}: {
+  team: { id: string; name: string; sport: string }
+  installations: Installation[]
+}) {
   const supabase = await createClient()
 
   const { data: training } = await supabase
@@ -88,6 +97,7 @@ async function TeamTrainingSection({ team }: { team: { id: string; name: string;
           initialTime={training?.time_txt ?? ''}
           initialPlace={training?.place ?? ''}
           initialRainPlace={training?.rain_place ?? ''}
+          installations={installations}
         />
       </div>
 
