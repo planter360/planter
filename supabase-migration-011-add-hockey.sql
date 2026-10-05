@@ -8,15 +8,19 @@
 -- de l'app (secció d'un coordinador, esport d'una fitxa d'scouting)
 -- falla amb una violació de constraint a la base de dades.
 --
+-- "if exists" perquè funcioni tant si la constraint ja existia amb
+-- el nom esperat com si (p.ex. la migració 003 no es va arribar a
+-- executar) encara no existia cap restricció.
+--
 -- Executa aquest fitxer sencer a: Supabase → SQL Editor → Run
 -- ============================================================
 
-alter table public.memberships drop constraint memberships_section_valid;
+alter table public.memberships drop constraint if exists memberships_section_valid;
 alter table public.memberships
   add constraint memberships_section_valid
   check (section is null or section in ('futbol','basquet','handbol','volei','futsal','hockey'));
 
-alter table public.scouted_players drop constraint scouted_players_sport_check;
+alter table public.scouted_players drop constraint if exists scouted_players_sport_check;
 alter table public.scouted_players
   add constraint scouted_players_sport_check
   check (sport in ('futbol','basquet','handbol','volei','futsal','hockey'));
