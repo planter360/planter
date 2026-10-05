@@ -38,10 +38,21 @@ export async function FamiliaPartitsView({
   const { data: matches } = teamIds.length
     ? await supabase
         .from('matches')
-        .select('id, team_id, rival, starts_at, place, status, result')
+        .select('id, team_id, rival, starts_at, place, place_address, status, result')
         .in('team_id', teamIds)
         .order('starts_at', { ascending: true, nullsFirst: false })
-    : { data: [] as { id: string; team_id: string; rival: string; starts_at: string | null; place: string | null; status: string; result: string | null }[] }
+    : {
+        data: [] as {
+          id: string
+          team_id: string
+          rival: string
+          starts_at: string | null
+          place: string | null
+          place_address: string | null
+          status: string
+          result: string | null
+        }[],
+      }
 
   const matchIds = (matches ?? []).map((m) => m.id)
   const { data: callupRows } = matchIds.length
@@ -90,7 +101,7 @@ export async function FamiliaPartitsView({
                           <div className="font-semibold text-zinc-900">vs {m.rival}</div>
                           <div className="text-xs text-zinc-500">
                             {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
-                            <PlaceLink place={m.place} installations={installations} />
+                            <PlaceLink place={m.place} address={m.place_address} installations={installations} />
                           </div>
                         </div>
                         {m.result ? (

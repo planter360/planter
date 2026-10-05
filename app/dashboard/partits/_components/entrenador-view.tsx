@@ -70,7 +70,7 @@ async function TeamMatches({
 
   const { data: matches } = await supabase
     .from('matches')
-    .select('id, rival, starts_at, place, status, result')
+    .select('id, rival, starts_at, place, place_address, status, result')
     .eq('team_id', team.id)
     .order('starts_at', { ascending: true, nullsFirst: false })
 
@@ -103,7 +103,7 @@ async function TeamMatches({
                 <div className="font-semibold text-zinc-900">vs {m.rival}</div>
                 <div className="text-xs text-zinc-500">
                   {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
-                  <PlaceLink place={m.place} installations={installations} />
+                  <PlaceLink place={m.place} address={m.place_address} installations={installations} />
                 </div>
               </div>
               {m.result ? (

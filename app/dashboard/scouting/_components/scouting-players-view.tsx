@@ -10,6 +10,10 @@ interface Observation {
   id: string
   scouted_player_id: string
   status: string
+  tec: number | null
+  fis: number | null
+  tac: number | null
+  men: number | null
   notes: string | null
   observed_at: string | null
 }
@@ -55,7 +59,7 @@ export async function ScoutingPlayersView({
   const { data: observationsData } = playerIds.length
     ? await supabase
         .from('scouting_observations')
-        .select('id, scouted_player_id, status, notes, observed_at')
+        .select('id, scouted_player_id, status, tec, fis, tac, men, notes, observed_at')
         .in('scouted_player_id', playerIds)
         .order('observed_at', { ascending: false, nullsFirst: false })
     : { data: [] as Observation[] }
@@ -98,6 +102,14 @@ export async function ScoutingPlayersView({
                 <div key={o.id} className="flex items-start gap-3 text-sm">
                   <StatusBadge status={o.status} />
                   <div className="flex-1">
+                    {(o.tec || o.fis || o.tac || o.men) && (
+                      <div className="flex flex-wrap gap-3 text-xs">
+                        {o.tec && <span className="font-semibold text-zinc-700">T {o.tec}</span>}
+                        {o.fis && <span className="font-semibold text-zinc-700">F {o.fis}</span>}
+                        {o.tac && <span className="font-semibold text-zinc-700">Tà {o.tac}</span>}
+                        {o.men && <span className="font-semibold text-zinc-700">M {o.men}</span>}
+                      </div>
+                    )}
                     {o.notes && <p className="text-zinc-700">{o.notes}</p>}
                     <p className="text-xs text-zinc-400">
                       {o.observed_at ? new Date(o.observed_at).toLocaleDateString('ca-ES') : 'Sense data'}

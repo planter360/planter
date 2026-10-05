@@ -10,6 +10,13 @@ const STATUS_OPTIONS = [
   { value: 'descartat', label: 'Descartat' },
 ]
 
+const SCORE_FIELDS = [
+  { name: 'tec', label: 'Tècnica' },
+  { name: 'fis', label: 'Físic' },
+  { name: 'tac', label: 'Tàctic' },
+  { name: 'men', label: 'Mental' },
+]
+
 export function ObservationForm({ scoutedPlayerId }: { scoutedPlayerId: string }) {
   const [open, setOpen] = useState(false)
 
@@ -54,6 +61,23 @@ export function ObservationForm({ scoutedPlayerId }: { scoutedPlayerId: string }
           className="mt-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
+      {SCORE_FIELDS.map((f) => (
+        <label key={f.name} className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+          {f.label}
+          <select
+            name={f.name}
+            defaultValue=""
+            className="mt-1 w-16 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm font-normal normal-case text-zinc-900"
+          >
+            <option value="">—</option>
+            {[1, 2, 3, 4, 5].map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
       <label className="flex min-w-48 flex-1 flex-col text-xs font-semibold uppercase text-zinc-500">
         Notes
         <input

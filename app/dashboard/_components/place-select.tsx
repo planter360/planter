@@ -19,8 +19,12 @@ export function PlaceSelect({
   placeholder?: string
   className?: string
 }) {
+  // Sempre comença com a desplegable quan hi ha instal·lacions creades,
+  // encara que el valor existent (dades antigues, abans d'aquest camp)
+  // no hi coincideixi — en aquest cas simplement no queda res
+  // pre-seleccionat, en comptes de caure silenciosament a text lliure.
+  const [isOther, setIsOther] = useState(installations.length === 0)
   const matchesList = installations.some((i) => i.name === defaultValue)
-  const [isOther, setIsOther] = useState(Boolean(defaultValue) ? !matchesList : installations.length === 0)
 
   if (isOther) {
     return (
@@ -38,7 +42,7 @@ export function PlaceSelect({
   return (
     <select
       name={name}
-      defaultValue={defaultValue || ''}
+      defaultValue={matchesList ? defaultValue : ''}
       onChange={(e) => {
         if (e.target.value === '__other__') setIsOther(true)
       }}

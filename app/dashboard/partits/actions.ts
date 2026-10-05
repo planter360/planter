@@ -4,7 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
 
-export async function createMatch(teamId: string, input: { rival: string; startsAtISO: string; place: string }) {
+export async function createMatch(
+  teamId: string,
+  input: { rival: string; startsAtISO: string; place: string; placeAddress: string }
+) {
   const { active } = await getSession()
   if (!active || (active.role !== 'coordinador' && active.role !== 'entrenador')) throw new Error('No autoritzat')
   if (!input.rival.trim()) return
@@ -16,6 +19,7 @@ export async function createMatch(teamId: string, input: { rival: string; starts
     rival: input.rival.trim(),
     starts_at: input.startsAtISO || null,
     place: input.place || null,
+    place_address: input.placeAddress || null,
   })
   if (error) throw new Error(error.message)
 

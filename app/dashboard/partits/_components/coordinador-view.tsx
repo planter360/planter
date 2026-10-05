@@ -25,7 +25,7 @@ export async function CoordinadorPartitsView({
 
   const { data } = await supabase
     .from('matches')
-    .select('id, rival, starts_at, place, status, result, teams(id, name, sport)')
+    .select('id, rival, starts_at, place, place_address, status, result, teams(id, name, sport)')
     .eq('club_id', clubId)
     .order('starts_at', { ascending: true, nullsFirst: false })
 
@@ -66,7 +66,7 @@ export async function CoordinadorPartitsView({
                 </div>
                 <div className="text-xs text-zinc-500">
                   {m.starts_at ? formatDateTime(m.starts_at) : 'Data per confirmar'} ·{' '}
-                  <PlaceLink place={m.place} installations={installations} />
+                  <PlaceLink place={m.place} address={m.place_address} installations={installations} />
                 </div>
               </div>
               <div className="flex items-center gap-3">

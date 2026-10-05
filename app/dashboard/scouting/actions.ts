@@ -34,6 +34,14 @@ export async function createScoutedPlayer(formData: FormData) {
   revalidatePath('/dashboard/scouting')
 }
 
+function optionalScore(formData: FormData, field: string): number | null {
+  const raw = String(formData.get(field) ?? '').trim()
+  if (!raw) return null
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error(`${field} ha de ser un nombre enter entre 1 i 5`)
+  return n
+}
+
 export async function addObservation(scoutedPlayerId: string, formData: FormData) {
   const { user, active } = await getSession()
   if (!active || !canManageScouting(active.role)) throw new Error('No autoritzat')
@@ -42,6 +50,10 @@ export async function addObservation(scoutedPlayerId: string, formData: FormData
   const { error } = await supabase.from('scouting_observations').insert({
     scouted_player_id: scoutedPlayerId,
     status: String(formData.get('status') ?? 'a_seguir'),
+    tec: optionalScore(formData, 'tec'),
+    fis: optionalScore(formData, 'fis'),
+    tac: optionalScore(formData, 'tac'),
+    men: optionalScore(formData, 'men'),
     notes: String(formData.get('notes') ?? '').trim() || null,
     observed_at: String(formData.get('observed_at') ?? '').trim() || null,
     created_by: user.id,

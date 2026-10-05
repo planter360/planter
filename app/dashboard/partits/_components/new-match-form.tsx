@@ -13,6 +13,7 @@ export function NewMatchForm({
   installations: Installation[]
 }) {
   const [open, setOpen] = useState(false)
+  const [home, setHome] = useState(true)
 
   if (teams.length === 0) return null
 
@@ -34,6 +35,7 @@ export function NewMatchForm({
           rival: String(formData.get('rival') ?? ''),
           startsAtISO,
           place: String(formData.get('place') ?? ''),
+          placeAddress: home ? '' : String(formData.get('place_address') ?? ''),
         })
         setOpen(false)
       }}
@@ -73,15 +75,47 @@ export function NewMatchForm({
           className="mt-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
-      <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
-        Lloc
-        <PlaceSelect
-          name="place"
-          installations={installations}
-          placeholder="Casa / Fora · Camp..."
-          className="w-44 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
-        />
-      </label>
+      <div className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+        Partit
+        <div className="mt-1 flex gap-3 normal-case">
+          <label className="flex items-center gap-1 text-sm font-normal text-zinc-700">
+            <input type="radio" checked={home} onChange={() => setHome(true)} /> Local
+          </label>
+          <label className="flex items-center gap-1 text-sm font-normal text-zinc-700">
+            <input type="radio" checked={!home} onChange={() => setHome(false)} /> Visitant
+          </label>
+        </div>
+      </div>
+      {home ? (
+        <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+          Lloc
+          <PlaceSelect
+            name="place"
+            installations={installations}
+            placeholder="Camp Municipal 1"
+            className="w-44 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+          />
+        </label>
+      ) : (
+        <>
+          <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+            Lloc
+            <input
+              name="place"
+              placeholder="Camp del rival"
+              className="mt-1 w-40 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+            />
+          </label>
+          <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+            Adreça
+            <input
+              name="place_address"
+              placeholder="Carrer, ciutat"
+              className="mt-1 w-44 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+            />
+          </label>
+        </>
+      )}
       <div className="ml-auto flex gap-2">
         <button
           type="button"
