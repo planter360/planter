@@ -3,28 +3,47 @@
 import { useState } from 'react'
 import { createTeam } from '../actions'
 import { TEAM_GENDERS } from '@/lib/teams'
+import { CoachPicker, type CoachOption } from './coach-picker'
 
-export function NewTeamForm({ sectionLabel }: { sectionLabel: string }) {
+export function NewTeamForm({ sectionLabel, coaches }: { sectionLabel: string; coaches: CoachOption[] }) {
   const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-      >
-        + Nou equip
-      </button>
+      <div className="flex flex-col items-end gap-2">
+        <button
+          onClick={() => {
+            setOpen(true)
+            setNotice('')
+          }}
+          className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+        >
+          + Nou equip
+        </button>
+        {notice && <p className="max-w-md text-right text-xs text-emerald-700">{notice}</p>}
+      </div>
     )
   }
 
   return (
     <form
       action={async (formData) => {
-        await createTeam(formData)
-        setOpen(false)
+        setSaving(true)
+        setError('')
+        try {
+          const result = await createTeam(formData)
+          setNotice(result.notice ?? '')
+          setOpen(false)
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'No s’ha pogut crear l’equip.')
+        } finally {
+          setSaving(false)
+        }
       }}
-      className="flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4"
+      className="flex w-full flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4"
     >
       <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
         Nom de l&apos;equip
@@ -53,17 +72,11 @@ export function NewTeamForm({ sectionLabel }: { sectionLabel: string }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
-        Entrenador/a
-        <input
-          name="coach_name"
-          placeholder="Nom"
-          className="mt-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
-        />
-      </label>
+      <CoachPicker coaches={coaches} />
       <div className="text-xs text-zinc-500">
         Secció: <span className="font-semibold text-zinc-700">{sectionLabel}</span>
       </div>
+      {error && <p className="w-full text-sm text-red-600">{error}</p>}
       <div className="ml-auto flex gap-2">
         <button
           type="button"
@@ -72,8 +85,12 @@ export function NewTeamForm({ sectionLabel }: { sectionLabel: string }) {
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-          Crear equip
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {saving ? 'Creant…' : 'Crear equip'}
         </button>
       </div>
     </form>

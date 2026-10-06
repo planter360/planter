@@ -7,6 +7,8 @@ import { sportName } from '@/lib/sports'
 import { genderName } from '@/lib/teams'
 import { NewPlayerForm } from './_components/new-player-form'
 import { BulkPlayersForm } from './_components/bulk-players-form'
+import { AssignCoachForm } from './_components/assign-coach-form'
+import type { CoachOption } from '../_components/coach-picker'
 import { DeletePlayerButton } from './_components/delete-player-button'
 import { LinkSecondaryTeam } from './_components/link-secondary-team'
 import { RemoveSecondaryLink } from './_components/remove-secondary-link'
@@ -69,6 +71,13 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
     otherTeamOptions = otherTeams ?? []
   }
 
+  const canAssignCoach = active.role === 'coordinador' || active.role === 'admin'
+  let coaches: CoachOption[] = []
+  if (canAssignCoach) {
+    const { data } = await supabase.rpc('club_coaches', { p_club_id: active.clubId })
+    coaches = (data ?? []) as CoachOption[]
+  }
+
   return (
     <div>
       <Link href="/dashboard/plantilles" className="text-xs font-semibold text-zinc-500 hover:underline">
@@ -82,6 +91,7 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
             {sportName(team.sport)}
             {genderName(team.gender) ? ` ${genderName(team.gender)}` : ''} · {team.coach_name ?? 'Entrenador/a per assignar'}
           </p>
+          {canAssignCoach && <AssignCoachForm teamId={team.id} coaches={coaches} />}
         </div>
         {canManage && (
           <div className="flex flex-wrap gap-2">

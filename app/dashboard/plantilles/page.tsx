@@ -5,6 +5,7 @@ import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
 import { genderName } from '@/lib/teams'
 import { NewTeamForm } from './_components/new-team-form'
+import type { CoachOption } from './_components/coach-picker'
 import { DeleteTeamButton } from './_components/delete-team-button'
 
 export default async function PlantillesPage() {
@@ -60,6 +61,12 @@ export default async function PlantillesPage() {
     visibleTeams = visibleTeams.filter((t) => myTeamIds.has(t.id))
   }
 
+  let coaches: CoachOption[] = []
+  if (active.role === 'coordinador') {
+    const { data } = await supabase.rpc('club_coaches', { p_club_id: active.clubId })
+    coaches = (data ?? []) as CoachOption[]
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -71,7 +78,7 @@ export default async function PlantillesPage() {
             {active.role === 'entrenador' && 'El teu equip.'}
           </p>
         </div>
-        {active.role === 'coordinador' && <NewTeamForm sectionLabel={sportName(active.section ?? '')} />}
+        {active.role === 'coordinador' && <NewTeamForm sectionLabel={sportName(active.section ?? '')} coaches={coaches} />}
       </div>
 
       {visibleTeams.length === 0 && (

@@ -1,32 +1,107 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
+import { escapeHtml, sendEmail } from '@/lib/email'
 import { TEAM_GENDERS, type BulkPlayerRow } from '@/lib/teams'
 
-export async function createTeam(formData: FormData) {
+// Els permisos reals els comproven les funcions SQL (assign_team_coach,
+// invite_team_coach): admin del club o coordinador de la secció.
+async function applyCoachChoice(
+  team: { id: string; name: string },
+  clubName: string,
+  formData: FormData
+): Promise<string | undefined> {
+  const mode = String(formData.get('coach_mode') ?? 'none')
+  const supabase = await createClient()
+
+  if (mode === 'existing') {
+    const userId = String(formData.get('coach_user_id') ?? '')
+    if (!userId) return
+    const { error } = await supabase.rpc('assign_team_coach', { p_team_id: team.id, p_user_id: userId })
+    if (error) throw new Error(error.message)
+    return 'Entrenador/a vinculat/da a l’equip.'
+  }
+
+  if (mode !== 'new') return
+
+  const email = String(formData.get('coach_email') ?? '').trim()
+  const fullName = String(formData.get('coach_full_name') ?? '').trim()
+  if (!email) return
+
+  const { data: status, error } = await supabase.rpc('invite_team_coach', {
+    p_team_id: team.id,
+    p_email: email,
+    p_full_name: fullName,
+  })
+  if (error) throw new Error(error.message)
+
+  const h = await headers()
+  const origin = h.get('origin') ?? `https://${h.get('host')}`
+  const greeting = fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'
+  const sent = await sendEmail({
+    to: email,
+    subject: `T'han afegit com a entrenador/a de ${team.name} a Planter`,
+    html: `<p>${greeting}</p>
+<p>${escapeHtml(clubName)} t'ha afegit com a entrenador/a de l'equip <strong>${escapeHtml(team.name)}</strong> a Planter.</p>
+<p>Per entrar, ves a <a href="${origin}/login">${origin}/login</a> i posa aquest mateix correu (${escapeHtml(email)}). Rebràs un enllaç d'accés, sense contrasenyes.</p>`,
+  })
+
+  const linked = status === 'linked'
+  if (sent) return `Invitació enviada a ${email}.`
+  return linked
+    ? `${email} ja tenia compte i ha quedat vinculat/da, però no s'ha pogut enviar el correu d'avís.`
+    : `Invitació pendent creada per a ${email}, però no s'ha pogut enviar el correu: avisa-l'/la perquè entri a ${origin}/login.`
+}
+
+export async function createTeam(formData: FormData): Promise<{ notice?: string }> {
   const { active } = await getSession()
   if (!active || active.role !== 'coordinador' || !active.section) {
     throw new Error('Només un coordinador de secció pot crear equips.')
   }
 
   const name = String(formData.get('name') ?? '').trim()
-  if (!name) return
-  const coachName = String(formData.get('coach_name') ?? '').trim()
+  if (!name) return {}
   const gender = String(formData.get('gender') ?? '')
 
   const supabase = await createClient()
-  const { error } = await supabase.from('teams').insert({
-    club_id: active.clubId,
-    sport: active.section,
-    name,
-    gender: TEAM_GENDERS.some((g) => g.id === gender) ? gender : null,
-    coach_name: coachName || null,
-  })
+  const { data: team, error } = await supabase
+    .from('teams')
+    .insert({
+      club_id: active.clubId,
+      sport: active.section,
+      name,
+      gender: TEAM_GENDERS.some((g) => g.id === gender) ? gender : null,
+    })
+    .select('id, name')
+    .single()
   if (error) throw new Error(error.message)
 
-  revalidatePath('/dashboard/plantilles')
+  let notice: string | undefined
+  try {
+    notice = await applyCoachChoice(team, active.clubName, formData)
+  } catch (e) {
+    notice = `Equip creat, però no s'ha pogut vincular l'entrenador/a: ${e instanceof Error ? e.message : 'error desconegut'}`
+  }
+
+  revalidatePath('/dashboard/plantilles', 'layout')
+  return { notice }
+}
+
+export async function assignCoach(teamId: string, formData: FormData): Promise<{ notice?: string }> {
+  const { active } = await getSession()
+  if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
+
+  const supabase = await createClient()
+  const { data: team } = await supabase.from('teams').select('id, name').eq('id', teamId).maybeSingle()
+  if (!team) throw new Error('Equip no trobat')
+
+  const notice = await applyCoachChoice(team, active.clubName, formData)
+
+  revalidatePath('/dashboard/plantilles', 'layout')
+  return { notice }
 }
 
 export async function deleteTeam(teamId: string) {

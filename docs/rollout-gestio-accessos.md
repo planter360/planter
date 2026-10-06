@@ -25,6 +25,26 @@ Això és acceptable amb un o dos clubs pilot (pocs usuaris, alta puntual fet
 per nosaltres), però no escala quan calgui donar d'alta un club sencer amb
 desenes d'entrenadors i famílies.
 
+## Ja implementat: entrenadors (migració 015)
+
+En crear un equip, o des de la pàgina de l'equip, admin/coordinador poden
+triar un entrenador existent del club o convidar-ne un de nou (nom + correu):
+
+- `club_coaches(club_id)`, `assign_team_coach(team_id, user_id)` i
+  `invite_team_coach(team_id, email, nom)` són funcions SQL security definer
+  que comproven l'abast (admin del club o coordinador de la secció de
+  l'equip) i escriuen `memberships` + `team_staff`.
+- Si el correu no té compte, queda a `staff_invites`; el trigger
+  `on_auth_user_invites` a `auth.users` el converteix en membership +
+  `team_staff` quan la persona entra per primer cop a `/login`.
+- L'app envia un correu d'avís via l'API de Resend (`RESEND_API_KEY`,
+  remitent opcional `EMAIL_FROM`). No s'envia l'enllaç màgic des de l'app:
+  amb PKCE l'enllaç només funciona al navegador que el demana, així que
+  l'entrenador el demana ell mateix des de `/login`.
+
+Aquest mateix patró (invitació pendent + trigger) és el que caldrà estendre a
+coordinadors i famílies.
+
 ## Objectiu pel següent mòdul: "Gestió d'usuaris"
 
 Pantalla dins l'app (accessible per `admin` i `coordinador`, cadascun amb
