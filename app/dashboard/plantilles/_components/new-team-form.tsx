@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createTeam } from '../actions'
+import { TEAM_GENDERS } from '@/lib/teams'
 
 export function NewTeamForm({ sectionLabel }: { sectionLabel: string }) {
   const [open, setOpen] = useState(false)
@@ -33,6 +34,24 @@ export function NewTeamForm({ sectionLabel }: { sectionLabel: string }) {
           placeholder="Ex.: Infantil B"
           className="mt-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
         />
+      </label>
+      <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
+        Categoria
+        <select
+          name="gender"
+          required
+          defaultValue=""
+          className="mt-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-normal normal-case text-zinc-900"
+        >
+          <option value="" disabled>
+            — Tria —
+          </option>
+          {TEAM_GENDERS.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="flex flex-col text-xs font-semibold uppercase text-zinc-500">
         Entrenador/a

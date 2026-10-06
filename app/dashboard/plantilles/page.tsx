@@ -3,6 +3,7 @@ import { getSession } from '@/lib/membership'
 import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
+import { genderName } from '@/lib/teams'
 import { NewTeamForm } from './_components/new-team-form'
 import { DeleteTeamButton } from './_components/delete-team-button'
 
@@ -46,7 +47,7 @@ export default async function PlantillesPage() {
 
   const { data: teams } = await supabase
     .from('teams')
-    .select('id, name, sport, coach_name')
+    .select('id, name, sport, gender, coach_name')
     .eq('club_id', active.clubId)
     .order('name')
 
@@ -85,7 +86,10 @@ export default async function PlantillesPage() {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="font-semibold text-zinc-900">{t.name}</div>
-                <div className="text-xs text-zinc-500">{sportName(t.sport)} · {t.coach_name ?? 'Entrenador/a per assignar'}</div>
+                <div className="text-xs text-zinc-500">
+                  {sportName(t.sport)}
+                  {genderName(t.gender) ? ` ${genderName(t.gender)}` : ''} · {t.coach_name ?? 'Entrenador/a per assignar'}
+                </div>
               </div>
               {active.role === 'coordinador' && <DeleteTeamButton teamId={t.id} teamName={t.name} />}
             </div>

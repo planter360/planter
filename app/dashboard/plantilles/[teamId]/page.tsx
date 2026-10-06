@@ -4,7 +4,9 @@ import { getSession } from '@/lib/membership'
 import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
+import { genderName } from '@/lib/teams'
 import { NewPlayerForm } from './_components/new-player-form'
+import { BulkPlayersForm } from './_components/bulk-players-form'
 import { DeletePlayerButton } from './_components/delete-player-button'
 import { LinkSecondaryTeam } from './_components/link-secondary-team'
 import { RemoveSecondaryLink } from './_components/remove-secondary-link'
@@ -28,7 +30,7 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
 
   const { data: team } = await supabase
     .from('teams')
-    .select('id, name, sport, coach_name')
+    .select('id, name, sport, gender, coach_name')
     .eq('id', teamId)
     .eq('club_id', active.clubId)
     .maybeSingle()
@@ -77,10 +79,16 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">{team.name}</h1>
           <p className="mt-1 text-sm text-zinc-600">
-            {sportName(team.sport)} · {team.coach_name ?? 'Entrenador/a per assignar'}
+            {sportName(team.sport)}
+            {genderName(team.gender) ? ` ${genderName(team.gender)}` : ''} · {team.coach_name ?? 'Entrenador/a per assignar'}
           </p>
         </div>
-        {canManage && <NewPlayerForm teamId={team.id} />}
+        {canManage && (
+          <div className="flex flex-wrap gap-2">
+            <BulkPlayersForm teamId={team.id} />
+            <NewPlayerForm teamId={team.id} />
+          </div>
+        )}
       </div>
 
       {(!players || players.length === 0) && (

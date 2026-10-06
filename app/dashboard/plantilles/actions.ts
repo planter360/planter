@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
+import { TEAM_GENDERS, type BulkPlayerRow } from '@/lib/teams'
 
 export async function createTeam(formData: FormData) {
   const { active } = await getSession()
@@ -13,12 +14,14 @@ export async function createTeam(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
   if (!name) return
   const coachName = String(formData.get('coach_name') ?? '').trim()
+  const gender = String(formData.get('gender') ?? '')
 
   const supabase = await createClient()
   const { error } = await supabase.from('teams').insert({
     club_id: active.clubId,
     sport: active.section,
     name,
+    gender: TEAM_GENDERS.some((g) => g.id === gender) ? gender : null,
     coach_name: coachName || null,
   })
   if (error) throw new Error(error.message)
@@ -56,6 +59,31 @@ export async function createPlayer(teamId: string, formData: FormData) {
     position: position || null,
     birth_year: birthRaw ? Number(birthRaw) : null,
   })
+  if (error) throw new Error(error.message)
+
+  revalidatePath(`/dashboard/plantilles/${teamId}`)
+}
+
+export async function createPlayersBulk(teamId: string, rows: BulkPlayerRow[]) {
+  const { active } = await getSession()
+  if (!active || active.role === 'familia') throw new Error('No autoritzat')
+  if (rows.length > 100) throw new Error('Màxim 100 jugadors per cop')
+
+  const toInt = (v: unknown) => (Number.isInteger(v) ? (v as number) : null)
+  const clean = rows
+    .map((r) => ({
+      club_id: active.clubId,
+      team_id: teamId,
+      full_name: String(r.full_name ?? '').trim(),
+      dorsal: toInt(r.dorsal),
+      position: String(r.position ?? '').trim() || null,
+      birth_year: toInt(r.birth_year),
+    }))
+    .filter((r) => r.full_name)
+  if (clean.length === 0) return
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('players').insert(clean)
   if (error) throw new Error(error.message)
 
   revalidatePath(`/dashboard/plantilles/${teamId}`)
