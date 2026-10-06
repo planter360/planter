@@ -9,6 +9,7 @@ export function NewTeamForm({ sectionLabel, coaches }: { sectionLabel: string; c
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [warning, setWarning] = useState(false)
   const [error, setError] = useState('')
 
   if (!open) {
@@ -23,7 +24,16 @@ export function NewTeamForm({ sectionLabel, coaches }: { sectionLabel: string; c
         >
           + Nou equip
         </button>
-        {notice && <p className="max-w-md text-right text-xs text-emerald-700">{notice}</p>}
+        {notice && (
+          <p
+            className={
+              'max-w-md text-right text-xs ' +
+              (warning ? 'rounded-lg bg-amber-50 px-2 py-1 text-amber-800' : 'text-emerald-700')
+            }
+          >
+            {notice}
+          </p>
+        )}
       </div>
     )
   }
@@ -36,6 +46,7 @@ export function NewTeamForm({ sectionLabel, coaches }: { sectionLabel: string; c
         try {
           const result = await createTeam(formData)
           setNotice(result.notice ?? '')
+          setWarning(Boolean(result.warning))
           setOpen(false)
         } catch (e) {
           setError(e instanceof Error ? e.message : 'No s’ha pogut crear l’equip.')

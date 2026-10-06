@@ -9,27 +9,32 @@ import { TEAM_GENDERS, type BulkPlayerRow } from '@/lib/teams'
 
 // Els permisos reals els comproven les funcions SQL (assign_team_coach,
 // invite_team_coach): admin del club o coordinador de la secció.
+interface CoachResult {
+  notice?: string
+  warning?: boolean
+}
+
 async function applyCoachChoice(
   team: { id: string; name: string },
   clubName: string,
   formData: FormData
-): Promise<string | undefined> {
+): Promise<CoachResult> {
   const mode = String(formData.get('coach_mode') ?? 'none')
   const supabase = await createClient()
 
   if (mode === 'existing') {
     const userId = String(formData.get('coach_user_id') ?? '')
-    if (!userId) return
+    if (!userId) return {}
     const { error } = await supabase.rpc('assign_team_coach', { p_team_id: team.id, p_user_id: userId })
     if (error) throw new Error(error.message)
-    return 'Entrenador/a vinculat/da a l’equip.'
+    return { notice: 'Entrenador/a vinculat/da a l’equip.' }
   }
 
-  if (mode !== 'new') return
+  if (mode !== 'new') return {}
 
   const email = String(formData.get('coach_email') ?? '').trim()
   const fullName = String(formData.get('coach_full_name') ?? '').trim()
-  if (!email) return
+  if (!email) return {}
 
   const { data: status, error } = await supabase.rpc('invite_team_coach', {
     p_team_id: team.id,
@@ -49,14 +54,19 @@ async function applyCoachChoice(
 <p>Per entrar, ves a <a href="${origin}/login">${origin}/login</a> i posa aquest mateix correu (${escapeHtml(email)}). Rebràs un enllaç d'accés, sense contrasenyes.</p>`,
   })
 
-  const linked = status === 'linked'
-  if (sent) return `Invitació enviada a ${email}.`
-  return linked
-    ? `${email} ja tenia compte i ha quedat vinculat/da, però no s'ha pogut enviar el correu d'avís.`
-    : `Invitació pendent creada per a ${email}, però no s'ha pogut enviar el correu: avisa-l'/la perquè entri a ${origin}/login.`
+  if (status === 'linked') {
+    return sent
+      ? { notice: `${email} ja tenia compte: vinculat/da a l'equip i avisat/da per correu.` }
+      : { notice: `${email} ja tenia compte i ha quedat vinculat/da a l'equip.` }
+  }
+  if (sent) return { notice: `Invitació enviada a ${email}.` }
+  return {
+    warning: true,
+    notice: `Invitació creada per a ${email}. El correu automàtic encara no està configurat: digues-li que entri a ${origin}/login amb aquest correu i quedarà vinculat/da a l'equip.`,
+  }
 }
 
-export async function createTeam(formData: FormData): Promise<{ notice?: string }> {
+export async function createTeam(formData: FormData): Promise<CoachResult> {
   const { active } = await getSession()
   if (!active || active.role !== 'coordinador' || !active.section) {
     throw new Error('Només un coordinador de secció pot crear equips.')
@@ -79,18 +89,21 @@ export async function createTeam(formData: FormData): Promise<{ notice?: string 
     .single()
   if (error) throw new Error(error.message)
 
-  let notice: string | undefined
+  let result: CoachResult
   try {
-    notice = await applyCoachChoice(team, active.clubName, formData)
+    result = await applyCoachChoice(team, active.clubName, formData)
   } catch (e) {
-    notice = `Equip creat, però no s'ha pogut vincular l'entrenador/a: ${e instanceof Error ? e.message : 'error desconegut'}`
+    result = {
+      warning: true,
+      notice: `Equip creat, però no s'ha pogut vincular l'entrenador/a: ${e instanceof Error ? e.message : 'error desconegut'}`,
+    }
   }
 
   revalidatePath('/dashboard/plantilles', 'layout')
-  return { notice }
+  return result
 }
 
-export async function assignCoach(teamId: string, formData: FormData): Promise<{ notice?: string }> {
+export async function assignCoach(teamId: string, formData: FormData): Promise<CoachResult> {
   const { active } = await getSession()
   if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
 
@@ -98,10 +111,10 @@ export async function assignCoach(teamId: string, formData: FormData): Promise<{
   const { data: team } = await supabase.from('teams').select('id, name').eq('id', teamId).maybeSingle()
   if (!team) throw new Error('Equip no trobat')
 
-  const notice = await applyCoachChoice(team, active.clubName, formData)
+  const result = await applyCoachChoice(team, active.clubName, formData)
 
   revalidatePath('/dashboard/plantilles', 'layout')
-  return { notice }
+  return result
 }
 
 export async function deleteTeam(teamId: string) {

@@ -8,6 +8,7 @@ export function AssignCoachForm({ teamId, coaches }: { teamId: string; coaches: 
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [warning, setWarning] = useState(false)
   const [error, setError] = useState('')
 
   if (!open) {
@@ -22,7 +23,15 @@ export function AssignCoachForm({ teamId, coaches }: { teamId: string; coaches: 
         >
           Assignar entrenador/a
         </button>
-        {notice && <span className="text-xs text-emerald-700">{notice}</span>}
+        {notice && (
+          <span
+            className={
+              'text-xs ' + (warning ? 'rounded-lg bg-amber-50 px-2 py-1 text-amber-800' : 'text-emerald-700')
+            }
+          >
+            {notice}
+          </span>
+        )}
       </span>
     )
   }
@@ -35,6 +44,7 @@ export function AssignCoachForm({ teamId, coaches }: { teamId: string; coaches: 
         try {
           const result = await assignCoach(teamId, formData)
           setNotice(result.notice ?? '')
+          setWarning(Boolean(result.warning))
           setOpen(false)
         } catch (e) {
           setError(e instanceof Error ? e.message : 'No s’ha pogut assignar.')
