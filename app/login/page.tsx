@@ -20,8 +20,18 @@ export default function Login() {
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
     })
     setLoading(false)
-    if (error) setError('No hem pogut enviar l’enllaç. Revisa el correu i torna-ho a provar.')
-    else setSent(true)
+    if (!error) {
+      setSent(true)
+      return
+    }
+    // El missatge original de Supabase ajuda a distingir un límit
+    // d'enviaments d'un problema de configuració del correu.
+    const tooMany = error.status === 429 || /rate limit|security purposes/i.test(error.message)
+    setError(
+      tooMany
+        ? 'Has demanat massa enllaços seguits. Espera uns minuts i torna-ho a provar.'
+        : `No hem pogut enviar l’enllaç. Revisa el correu i torna-ho a provar. (${error.message})`
+    )
   }
 
   return (
