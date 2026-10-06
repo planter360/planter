@@ -1,8 +1,9 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
-import { avgScore, pctChange, type Assessment } from './types'
 
 type TeamJoin = { name: string }
+type SummaryRow = { created_at: string; avg_score: number }
 
 export async function FamiliaView({ clubId }: { clubId: string }) {
   const supabase = await createClient()
@@ -22,20 +23,15 @@ export async function FamiliaView({ clubId }: { clubId: string }) {
     )
   }
 
-  const kidIds = kids.map((k) => k.id)
-  const { data: assessmentsData } = await supabase
-    .from('assessments')
-    .select('id, player_id, tec, fis, tac, men, notes, created_at')
-    .in('player_id', kidIds)
-    .order('created_at', { ascending: true })
-  const assessments = (assessmentsData ?? []) as Assessment[]
-
-  const byKid = new Map<string, Assessment[]>()
-  for (const a of assessments) {
-    const list = byKid.get(a.player_id) ?? []
-    list.push(a)
-    byKid.set(a.player_id, list)
-  }
+  // La família no llegeix assessments directament: la funció només
+  // retorna data + mitjana dels seus fills (sense notes ni desglossament).
+  const summaries = await Promise.all(
+    kids.map(async (k) => {
+      const { data } = await supabase.rpc('guardian_assessment_summary', { p_player_id: k.id })
+      return [k.id, ((data ?? []) as SummaryRow[]).map((r) => ({ ...r, avg_score: Number(r.avg_score) }))] as const
+    })
+  )
+  const byKid = new Map(summaries)
 
   return (
     <div>
@@ -48,19 +44,21 @@ export async function FamiliaView({ clubId }: { clubId: string }) {
           const team = oneOf(k.teams as TeamJoin | TeamJoin[] | null)
           const last = history[history.length - 1]
           const prev = history[history.length - 2]
-          const change = last ? pctChange(last, prev) : null
+          const change = last && prev && prev.avg_score ? ((last.avg_score - prev.avg_score) / prev.avg_score) * 100 : null
 
           return (
             <div key={k.id} className="rounded-2xl border border-zinc-200 bg-white p-5">
-              <div className="font-semibold text-zinc-900">{k.full_name}</div>
+              <Link href={`/dashboard/plantilles/jugador/${k.id}`} className="font-semibold text-zinc-900 hover:underline">
+                {k.full_name}
+              </Link>
               <div className="text-xs text-zinc-500">{team?.name ?? '—'}</div>
 
-              {history.length === 0 || !last ? (
+              {!last ? (
                 <p className="mt-3 text-sm text-zinc-600">Encara no hi ha cap valoració.</p>
               ) : (
                 <div className="mt-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-emerald-700">{avgScore(last).toFixed(1)}</span>
+                    <span className="text-3xl font-bold text-emerald-700">{last.avg_score.toFixed(1)}</span>
                     <span className="text-sm text-zinc-500">/ 5</span>
                     {change !== null && (
                       <span

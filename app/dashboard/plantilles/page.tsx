@@ -25,12 +25,16 @@ export default async function PlantillesPage() {
         <p className="mt-1 text-sm text-zinc-600">La fitxa dels teus fills.</p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {(kids ?? []).map((k) => (
-            <div key={k.id} className="rounded-2xl border border-zinc-200 bg-white p-5">
+            <Link
+              key={k.id}
+              href={`/dashboard/plantilles/jugador/${k.id}`}
+              className="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-emerald-300"
+            >
               <div className="font-semibold text-zinc-900">{k.full_name}</div>
               <div className="mt-1 text-sm text-zinc-600">
                 {k.position ?? 'Sense posició'} · {oneOf(k.teams)?.name ?? 'Sense equip'}
               </div>
-            </div>
+            </Link>
           ))}
           {(!kids || kids.length === 0) && (
             <p className="text-sm text-zinc-600">Encara no hi ha cap jugador vinculat al teu compte.</p>

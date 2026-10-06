@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { SquadMember } from '@/lib/squad'
 import { pctChange, type Assessment } from './types'
 import { AssessmentForm } from './assessment-form'
@@ -13,10 +14,10 @@ export function PlayerPotencialCard({
 }) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-      <div className="font-semibold text-zinc-900">
+      <Link href={`/dashboard/plantilles/jugador/${player.id}`} className="font-semibold text-zinc-900 hover:underline">
         {player.dorsal ? `#${player.dorsal} ` : ''}
         {player.full_name}
-      </div>
+      </Link>
 
       <div className="mt-3 space-y-2">
         {assessments.length === 0 && <p className="text-sm text-zinc-500">Encara no hi ha cap valoració.</p>}

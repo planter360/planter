@@ -72,6 +72,31 @@ export async function deletePlayer(teamId: string, playerId: string) {
   revalidatePath(`/dashboard/plantilles/${teamId}`)
 }
 
+// L'historial d'equips el registra un trigger a la base de dades
+// (migració 013) cada cop que canvia players.team_id.
+export async function changePlayerTeam(playerId: string, newTeamId: string) {
+  const { active } = await getSession()
+  if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
+  if (!newTeamId) return
+
+  const supabase = await createClient()
+  const { data: target } = await supabase
+    .from('teams')
+    .select('id, sport')
+    .eq('id', newTeamId)
+    .eq('club_id', active.clubId)
+    .maybeSingle()
+  if (!target) throw new Error('Equip no vàlid')
+  if (active.role === 'coordinador' && target.sport !== active.section) {
+    throw new Error('Només pots moure jugadors a equips de la teva secció')
+  }
+
+  const { error } = await supabase.from('players').update({ team_id: newTeamId }).eq('id', playerId)
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/dashboard/plantilles', 'layout')
+}
+
 export async function addSecondaryTeam(playerId: string, teamId: string) {
   const { active } = await getSession()
   if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')

@@ -98,7 +98,9 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
                 {p.dorsal ?? '–'}
               </div>
               <div className="flex-1">
-                <div className="font-semibold text-zinc-900">{p.full_name}</div>
+                <Link href={`/dashboard/plantilles/jugador/${p.id}`} className="font-semibold text-zinc-900 hover:underline">
+                  {p.full_name}
+                </Link>
                 <div className="text-xs text-zinc-500">
                   {p.position ?? 'Sense posició'}
                   {p.birth_year ? ` · ${p.birth_year}` : ''}
@@ -123,7 +125,9 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
                   {p.dorsal ?? '–'}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-zinc-900">{p.full_name}</div>
+                  <Link href={`/dashboard/plantilles/jugador/${p.id}`} className="font-semibold text-zinc-900 hover:underline">
+                    {p.full_name}
+                  </Link>
                   <div className="text-xs text-zinc-500">Equip principal: {oneOf(p.teams)?.name ?? '—'}</div>
                 </div>
                 {canLinkTeams && <RemoveSecondaryLink playerId={p.id} teamId={team.id} playerName={p.full_name} />}
