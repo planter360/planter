@@ -56,7 +56,8 @@ export function WeekCalendar({
 
   return (
     <div>
-      <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+      <AgendaList days={days} events={events} today={today} highlightConflicts={highlightConflicts} />
+      <div className="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white md:block">
         <div className="grid" style={{ gridTemplateColumns: '3rem repeat(7, minmax(6.5rem, 1fr))', minWidth: 780 }}>
           <div className="border-b border-zinc-200" />
           {days.map((d) => (
@@ -134,6 +135,68 @@ export function WeekCalendar({
           </span>
         )}
       </div>
+    </div>
+  )
+}
+
+// En mòbil la graella de 7 columnes no hi cap: es mostra com a agenda.
+function AgendaList({
+  days,
+  events,
+  today,
+  highlightConflicts,
+}: {
+  days: { label: string; date: string }[]
+  events: CalEvent[]
+  today: string
+  highlightConflicts: boolean
+}) {
+  const daysWithEvents = days
+    .map((d, dayIndex) => ({ ...d, placed: layoutDay(events.filter((e) => e.day === dayIndex)) }))
+    .filter((d) => d.placed.length > 0)
+
+  return (
+    <div className="space-y-4 md:hidden">
+      {daysWithEvents.length === 0 && <p className="text-sm text-zinc-600">Cap entrenament ni partit aquesta setmana.</p>}
+      {daysWithEvents.map((d) => (
+        <section key={d.date}>
+          <h3
+            className={
+              'mb-1.5 text-xs font-semibold uppercase tracking-wide ' + (d.date === today ? 'text-emerald-700' : 'text-zinc-500')
+            }
+          >
+            {d.label}
+            {d.date === today ? ' · avui' : ''}
+          </h3>
+          <div className="space-y-2">
+            {d.placed.map(({ event, conflict }) => {
+              const className =
+                'flex items-start gap-3 rounded-xl border px-3 py-2.5 ' +
+                (highlightConflicts && conflict ? 'border-red-400 bg-red-50 text-red-900' : KIND_STYLE[event.kind])
+              const body = (
+                <>
+                  <span className="w-20 shrink-0 text-xs font-semibold tabular-nums">
+                    {formatMinutes(event.start)}–{formatMinutes(event.end)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{event.title}</span>
+                    {event.subtitle && <span className="block text-xs opacity-70">{event.subtitle}</span>}
+                  </span>
+                </>
+              )
+              return event.href ? (
+                <Link key={event.id} href={event.href} className={className}>
+                  {body}
+                </Link>
+              ) : (
+                <div key={event.id} className={className}>
+                  {body}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   )
 }

@@ -111,7 +111,7 @@ async function TeamTrainingSection({
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Sessions i assistència</h3>
         <NewSessionForm teamId={team.id} />
       </div>

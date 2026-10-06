@@ -112,7 +112,7 @@ async function TeamMatches({
                 <MatchStatusTag status={m.status} />
               )}
             </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <CallupsEditor matchId={m.id} squad={squad} calledUpIds={calledUpByMatch.get(m.id) ?? []} />
               <ResultForm matchId={m.id} status={m.status} result={m.result} />
             </div>

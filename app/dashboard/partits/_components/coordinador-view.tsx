@@ -77,7 +77,7 @@ export async function CoordinadorPartitsView({
                 )}
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <span className="text-xs text-zinc-500">{callupCount.get(m.id) ?? 0} convocats</span>
               <ResultForm matchId={m.id} status={m.status} result={m.result} />
             </div>

@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const modules = allowedModules(active.role)
 
   return (
-    <div className="flex flex-1">
+    <div className="flex flex-1 flex-col md:flex-row">
       <Sidebar
         modules={modules}
         clubName={active.clubName}
@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         memberships={memberships}
         activeMembershipId={active.id}
       />
-      <main className="flex-1 overflow-y-auto p-6 md:p-10">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6 md:p-10">{children}</main>
     </div>
   )
 }
