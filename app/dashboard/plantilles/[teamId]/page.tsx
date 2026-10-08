@@ -8,6 +8,7 @@ import { genderName } from '@/lib/teams'
 import { NewPlayerForm } from './_components/new-player-form'
 import { BulkPlayersForm } from './_components/bulk-players-form'
 import { AssignCoachForm } from './_components/assign-coach-form'
+import { TeamGenderSelect } from './_components/team-gender-select'
 import type { CoachOption } from '../_components/coach-picker'
 import { DeletePlayerButton } from './_components/delete-player-button'
 import { LinkSecondaryTeam } from './_components/link-secondary-team'
@@ -91,7 +92,12 @@ export default async function TeamPlayersPage({ params }: { params: Promise<{ te
             {sportName(team.sport)}
             {genderName(team.gender) ? ` ${genderName(team.gender)}` : ''} · {team.coach_name ?? 'Entrenador/a per assignar'}
           </p>
-          {canAssignCoach && <AssignCoachForm teamId={team.id} coaches={coaches} />}
+          {canAssignCoach && (
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <TeamGenderSelect teamId={team.id} gender={team.gender} />
+              <AssignCoachForm teamId={team.id} coaches={coaches} />
+            </div>
+          )}
         </div>
         {canManage && (
           <div className="flex flex-wrap gap-2">

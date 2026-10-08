@@ -3,14 +3,17 @@ import { getSession } from '@/lib/membership'
 import { createClient } from '@/lib/supabase/server'
 import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
-import { genderName } from '@/lib/teams'
+import { genderName, TEAM_GENDERS } from '@/lib/teams'
 import { NewTeamForm } from './_components/new-team-form'
 import type { CoachOption } from './_components/coach-picker'
 import { DeleteTeamButton } from './_components/delete-team-button'
 
-export default async function PlantillesPage() {
+export default async function PlantillesPage({ searchParams }: { searchParams: Promise<{ categoria?: string }> }) {
   const { user, active } = await getSession()
   if (!active) return null
+
+  const { categoria: categoriaParam } = await searchParams
+  const categoria = TEAM_GENDERS.find((g) => g.id === categoriaParam)?.id ?? null
 
   const supabase = await createClient()
 
@@ -60,6 +63,7 @@ export default async function PlantillesPage() {
     const myTeamIds = new Set((staffRows ?? []).map((r) => r.team_id))
     visibleTeams = visibleTeams.filter((t) => myTeamIds.has(t.id))
   }
+  const shownTeams = categoria ? visibleTeams.filter((t) => t.gender === categoria) : visibleTeams
 
   let coaches: CoachOption[] = []
   if (active.role === 'coordinador') {
@@ -81,14 +85,36 @@ export default async function PlantillesPage() {
         {active.role === 'coordinador' && <NewTeamForm sectionLabel={sportName(active.section ?? '')} coaches={coaches} />}
       </div>
 
+      {visibleTeams.length > 1 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {[{ id: null, name: 'Tots' }, ...TEAM_GENDERS].map((g) => (
+            <Link
+              key={g.id ?? 'tots'}
+              href={g.id ? `/dashboard/plantilles?categoria=${g.id}` : '/dashboard/plantilles'}
+              className={
+                'rounded-full px-3 py-1.5 text-sm font-semibold ' +
+                (categoria === g.id ? 'bg-zinc-900 text-white' : 'border border-zinc-300 text-zinc-700 hover:bg-zinc-100')
+              }
+            >
+              {g.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
       {visibleTeams.length === 0 && (
         <p className="mt-6 text-sm text-zinc-600">
           Encara no hi ha cap equip {active.role === 'entrenador' ? 'assignat al teu compte' : 'en aquesta secció'}.
         </p>
       )}
+      {visibleTeams.length > 0 && shownTeams.length === 0 && (
+        <p className="mt-6 text-sm text-zinc-600">
+          Cap equip amb aquesta categoria. Els equips creats abans d&apos;afegir el camp no en tenen cap d&apos;assignada.
+        </p>
+      )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {visibleTeams.map((t) => (
+        {shownTeams.map((t) => (
           <div key={t.id} className="rounded-2xl border border-zinc-200 bg-white p-5">
             <div className="flex items-start justify-between gap-2">
               <div>

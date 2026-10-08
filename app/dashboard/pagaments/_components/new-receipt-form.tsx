@@ -11,19 +11,41 @@ export interface PlayerOption {
 
 export function NewReceiptForm({ players }: { players: PlayerOption[] }) {
   const [open, setOpen] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [warning, setWarning] = useState(false)
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">
-        + Nou rebut
-      </button>
+      <div className="flex flex-col items-end gap-2">
+        <button
+          onClick={() => {
+            setOpen(true)
+            setNotice('')
+          }}
+          className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+        >
+          + Nou rebut
+        </button>
+        {notice && (
+          <p
+            className={
+              'max-w-md text-right text-xs ' +
+              (warning ? 'rounded-lg bg-amber-50 px-2 py-1 text-amber-800' : 'text-emerald-700')
+            }
+          >
+            {notice}
+          </p>
+        )}
+      </div>
     )
   }
 
   return (
     <form
       action={async (formData) => {
-        await createReceipt(formData)
+        const result = await createReceipt(formData)
+        setNotice(result.notice ?? '')
+        setWarning(Boolean(result.warning))
         setOpen(false)
       }}
       className="flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4"

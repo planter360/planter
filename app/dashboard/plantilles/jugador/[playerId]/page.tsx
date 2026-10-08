@@ -6,6 +6,7 @@ import { oneOf } from '@/lib/relations'
 import { sportName } from '@/lib/sports'
 import { formatDateTime } from '@/lib/format'
 import { ChangeTeamForm } from './_components/change-team-form'
+import { FamilyCard, type GuardianRow } from './_components/family-card'
 
 type TeamJoin = { id: string; name: string; sport: string }
 type MatchJoin = { id: string; rival: string; starts_at: string | null; result: string | null }
@@ -94,6 +95,14 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
         detail: { tec: last.tec, fis: last.fis, tac: last.tac, men: last.men },
       }
     }
+  }
+
+  // Si qui consulta no pot gestionar el jugador, la funció falla i la
+  // targeta simplement no es mostra.
+  let guardians: GuardianRow[] | null = null
+  if (!isFamily) {
+    const { data, error } = await supabase.rpc('player_guardians', { p_player_id: playerId })
+    if (!error) guardians = (data ?? []) as GuardianRow[]
   }
 
   const canChangeTeam = active.role === 'coordinador' || active.role === 'admin'
@@ -220,6 +229,12 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           )}
         </Card>
       </div>
+
+      {guardians && (
+        <div className="mt-6">
+          <FamilyCard playerId={player.id} guardians={guardians} />
+        </div>
+      )}
 
       <div className="mt-6">
         <Card title="Últimes convocatòries" href="/dashboard/partits">

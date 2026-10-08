@@ -3,11 +3,20 @@ import { oneOf } from '@/lib/relations'
 import { formatEuros } from '@/lib/money'
 import { sportName } from '@/lib/sports'
 import { StatusTag } from './status-tag'
+import { StatusFilterCards, totalsByStatus, type StatusFilter } from './status-filter'
 
 type TeamJoin = { name: string; sport: string }
 type PlayerJoin = { full_name: string; teams: TeamJoin | TeamJoin[] | null }
 
-export async function CoordinadorPagamentsView({ clubId, section }: { clubId: string; section: string | null }) {
+export async function CoordinadorPagamentsView({
+  clubId,
+  section,
+  estat,
+}: {
+  clubId: string
+  section: string | null
+  estat: StatusFilter | null
+}) {
   const supabase = await createClient()
 
   const { data: receipts } = await supabase
@@ -33,9 +42,8 @@ export async function CoordinadorPagamentsView({ clubId, section }: { clubId: st
     })
     .filter((r) => r.sport === section)
 
-  const paid = rows.filter((r) => r.status === 'pagat').reduce((a, r) => a + r.amount_cents, 0)
-  const pending = rows.filter((r) => r.status === 'pendent').reduce((a, r) => a + r.amount_cents, 0)
-  const overdue = rows.filter((r) => r.status === 'vencut').reduce((a, r) => a + r.amount_cents, 0)
+  const totals = totalsByStatus(rows)
+  const visibleRows = estat ? rows.filter((r) => r.status === estat) : rows
 
   return (
     <div>
@@ -44,15 +52,15 @@ export async function CoordinadorPagamentsView({ clubId, section }: { clubId: st
         Estat de cobrament de la secció {sportName(section ?? '')} (lectura, sense dades bancàries).
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-4">
-        <SummaryStat label="Cobrat" value={formatEuros(paid)} />
-        <SummaryStat label="Pendent" value={formatEuros(pending)} />
-        <SummaryStat label="Vençut" value={formatEuros(overdue)} />
-      </div>
+      <StatusFilterCards totals={totals} active={estat} />
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
-        {rows.length === 0 && <div className="px-5 py-6 text-sm text-zinc-600">No hi ha rebuts en aquesta secció.</div>}
-        {rows.map((r, i) => (
+        {visibleRows.length === 0 && (
+          <div className="px-5 py-6 text-sm text-zinc-600">
+            {estat ? 'Cap rebut amb aquest estat.' : 'No hi ha rebuts en aquesta secció.'}
+          </div>
+        )}
+        {visibleRows.map((r, i) => (
           <div
             key={r.id}
             className={'flex flex-wrap items-center gap-3 px-5 py-3 ' + (i ? 'border-t border-zinc-100' : '')}
@@ -65,15 +73,6 @@ export async function CoordinadorPagamentsView({ clubId, section }: { clubId: st
           </div>
         ))}
       </div>
-    </div>
-  )
-}
-
-function SummaryStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-zinc-200 bg-white px-5 py-4">
-      <div className="text-xs font-semibold uppercase text-zinc-500">{label}</div>
-      <div className="mt-1 text-xl font-bold text-zinc-900">{value}</div>
     </div>
   )
 }

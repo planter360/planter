@@ -1,10 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
-import { escapeHtml, sendEmail } from '@/lib/email'
+import { appOrigin, escapeHtml, sendEmail } from '@/lib/email'
 import { TEAM_GENDERS, type BulkPlayerRow } from '@/lib/teams'
 
 // Els permisos reals els comproven les funcions SQL (assign_team_coach,
@@ -43,8 +42,7 @@ async function applyCoachChoice(
   })
   if (error) throw new Error(error.message)
 
-  const h = await headers()
-  const origin = h.get('origin') ?? `https://${h.get('host')}`
+  const origin = await appOrigin()
   const greeting = fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'
   const sent = await sendEmail({
     to: email,
@@ -115,6 +113,67 @@ export async function assignCoach(teamId: string, formData: FormData): Promise<C
 
   revalidatePath('/dashboard/plantilles', 'layout')
   return result
+}
+
+export async function inviteGuardian(playerId: string, formData: FormData): Promise<CoachResult> {
+  const { active } = await getSession()
+  if (!active || active.role === 'familia') throw new Error('No autoritzat')
+
+  const email = String(formData.get('email') ?? '').trim()
+  const fullName = String(formData.get('full_name') ?? '').trim()
+  if (!email) return {}
+
+  const supabase = await createClient()
+  const { data: status, error } = await supabase.rpc('invite_guardian', {
+    p_player_id: playerId,
+    p_email: email,
+    p_full_name: fullName,
+  })
+  if (error) throw new Error(error.message)
+
+  const { data: player } = await supabase.from('players').select('full_name').eq('id', playerId).maybeSingle()
+  const origin = await appOrigin()
+  const sent = await sendEmail({
+    to: email,
+    subject: `Accés a Planter · ${player?.full_name ?? 'el teu fill/a'}`,
+    html: `<p>${fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'}</p>
+<p>${escapeHtml(active.clubName)} t'ha donat accés a Planter com a familiar de <strong>${escapeHtml(player?.full_name ?? '')}</strong>: hi veuràs els seus horaris, partits, rebuts i comunicats del club.</p>
+<p>Per entrar, ves a <a href="${origin}/login">${origin}/login</a> i posa aquest mateix correu (${escapeHtml(email)}). Rebràs un enllaç d'accés, sense contrasenyes.</p>`,
+  })
+
+  revalidatePath(`/dashboard/plantilles/jugador/${playerId}`)
+
+  if (status === 'linked') return { notice: sent ? `${email} vinculat/da i avisat/da per correu.` : `${email} vinculat/da.` }
+  if (sent) return { notice: `Invitació enviada a ${email}.` }
+  return {
+    warning: true,
+    notice: `Invitació creada per a ${email}. El correu no s'ha pogut enviar: digues-li que entri a ${origin}/login amb aquest correu.`,
+  }
+}
+
+export async function removeGuardian(playerId: string, email: string) {
+  const { active } = await getSession()
+  if (!active || active.role === 'familia') throw new Error('No autoritzat')
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('remove_guardian', { p_player_id: playerId, p_email: email })
+  if (error) throw new Error(error.message)
+
+  revalidatePath(`/dashboard/plantilles/jugador/${playerId}`)
+}
+
+export async function setTeamGender(teamId: string, gender: string) {
+  const { active } = await getSession()
+  if (!active || (active.role !== 'coordinador' && active.role !== 'admin')) throw new Error('No autoritzat')
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('teams')
+    .update({ gender: TEAM_GENDERS.some((g) => g.id === gender) ? gender : null })
+    .eq('id', teamId)
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/dashboard/plantilles', 'layout')
 }
 
 export async function deleteTeam(teamId: string) {

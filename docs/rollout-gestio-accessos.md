@@ -37,13 +37,24 @@ triar un entrenador existent del club o convidar-ne un de nou (nom + correu):
 - Si el correu no té compte, queda a `staff_invites`; el trigger
   `on_auth_user_invites` a `auth.users` el converteix en membership +
   `team_staff` quan la persona entra per primer cop a `/login`.
-- L'app envia un correu d'avís via l'API de Resend (`RESEND_API_KEY`,
-  remitent opcional `EMAIL_FROM`). No s'envia l'enllaç màgic des de l'app:
-  amb PKCE l'enllaç només funciona al navegador que el demana, així que
-  l'entrenador el demana ell mateix des de `/login`.
+- L'app envia un correu d'avís per SMTP (`lib/email.ts`, variables
+  `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` i opcional `EMAIL_FROM`).
+  Durant la beta és Gmail amb contrasenya d'aplicació; amb domini propi
+  n'hi ha prou amb apuntar-les a `smtp.resend.com` (usuari `resend`,
+  contrasenya = API key). No s'envia l'enllaç màgic des de l'app: amb PKCE
+  l'enllaç només funciona al navegador que el demana, així que la persona
+  el demana ella mateixa des de `/login`.
 
-Aquest mateix patró (invitació pendent + trigger) és el que caldrà estendre a
-coordinadors i famílies.
+## Ja implementat: famílies (migració 016)
+
+Des de la fitxa del jugador, el cos tècnic (admin, coordinador de la secció o
+entrenador de l'equip) afegeix el correu del familiar. Mateix patró:
+`invite_guardian` vincula al moment (`memberships` rol `familia` +
+`guardians`) o deixa la invitació a `guardian_invites`, que el mateix trigger
+de `auth.users` activa en el primer accés. En emetre un rebut, s'avisa per
+correu els familiars ja vinculats.
+
+Queda pendent el mateix per a coordinadors (ara encara manual per SQL).
 
 ## Objectiu pel següent mòdul: "Gestió d'usuaris"
 

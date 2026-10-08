@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSession } from '@/lib/membership'
 import { createClient } from '@/lib/supabase/server'
-import { ROLE_LABELS } from '@/lib/access'
+import { ROLE_LABELS, type Role } from '@/lib/access'
 import { effectivePlace } from '@/lib/schedule'
 import {
   matchEvent,
@@ -12,6 +12,13 @@ import {
   type CalEvent,
 } from '@/lib/calendar'
 import { WeekCalendar, WeekNav } from './_components/week-calendar'
+
+const WEEK_TITLE: Record<Role, string> = {
+  admin: 'Setmana del club',
+  coordinador: 'Setmana de la secció',
+  entrenador: 'La teva setmana',
+  familia: 'Setmana dels teus fills',
+}
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
   const { user, active } = await getSession()
@@ -24,21 +31,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     .select('id', { count: 'exact', head: true })
     .eq('club_id', active.clubId)
 
-  const { count: teamsCount } = await supabase
-    .from('teams')
-    .select('id', { count: 'exact', head: true })
-    .eq('club_id', active.clubId)
-
-  let kids: { id: string; full_name: string }[] = []
+  let kids: { id: string; full_name: string; team_id: string | null }[] = []
   if (active.role === 'familia') {
     const { data } = await supabase
       .from('players')
-      .select('id, full_name')
+      .select('id, full_name, team_id')
       .eq('club_id', active.clubId)
       .order('full_name')
     kids = data ?? []
   }
 
+  const teamIds = await visibleTeamIds(active.role, active.clubId, active.section, user.id, kids)
   const { week } = await searchParams
   const weekStart = resolveWeekStart(week)
 
@@ -54,29 +57,27 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <StatCard
             label={active.role === 'entrenador' ? 'Jugadors del teu equip' : 'Jugadors'}
             value={playersCount ?? 0}
-            href="/dashboard/plantilles"
+            href="/dashboard/jugadors"
           />
           {(active.role === 'admin' || active.role === 'coordinador') && (
             <StatCard
               label={active.role === 'coordinador' ? 'Equips de la teva secció' : 'Equips'}
-              value={teamsCount ?? 0}
+              value={teamIds.length}
               href="/dashboard/plantilles"
             />
           )}
         </div>
       )}
 
-      {active.role === 'entrenador' && <CoachWeek clubId={active.clubId} userId={user.id} weekStart={weekStart} />}
-
       {active.role === 'familia' && (
         <div className="mt-6">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Els teus fills</h2>
           {kids.length === 0 ? (
             <p className="mt-2 text-sm text-zinc-600">
-              Encara no hi ha cap jugador vinculat al teu compte. Demana a l&apos;administrador del club que et hi vinculi.
+              Encara no hi ha cap jugador vinculat al teu compte. Demana a l&apos;entrenador o al club que et hi vinculi.
             </p>
           ) : (
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
               {kids.map((k) => (
                 <li key={k.id}>
                   <Link
@@ -91,25 +92,63 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           )}
         </div>
       )}
+
+      {teamIds.length > 0 ? (
+        <TeamsWeek clubId={active.clubId} teamIds={teamIds} weekStart={weekStart} title={WEEK_TITLE[active.role]} />
+      ) : (
+        active.role !== 'familia' && (
+          <p className="mt-8 text-sm text-zinc-600">
+            {active.role === 'entrenador' ? 'Encara no tens cap equip assignat.' : 'Encara no hi ha equips.'}
+          </p>
+        )
+      )}
     </div>
   )
 }
 
-async function CoachWeek({ clubId, userId, weekStart }: { clubId: string; userId: string; weekStart: string }) {
+// Equips que entren al calendari de cada rol. La RLS ja limita què es
+// pot llegir; això només decideix l'abast (secció, equip propi, fills).
+async function visibleTeamIds(
+  role: Role,
+  clubId: string,
+  section: string | null,
+  userId: string,
+  kids: { id: string; team_id: string | null }[]
+): Promise<string[]> {
   const supabase = await createClient()
 
-  const { data: staffRows } = await supabase.from('team_staff').select('team_id').eq('user_id', userId)
-  const teamIds = (staffRows ?? []).map((r) => r.team_id)
-  if (teamIds.length === 0) {
-    return <p className="mt-8 text-sm text-zinc-600">Encara no tens cap equip assignat.</p>
+  if (role === 'entrenador') {
+    const { data } = await supabase.from('team_staff').select('team_id').eq('user_id', userId)
+    return (data ?? []).map((r) => r.team_id)
+  }
+  if (role === 'familia') {
+    const primary = kids.map((k) => k.team_id).filter((id): id is string => Boolean(id))
+    const { data: secondary } = kids.length
+      ? await supabase.from('player_teams').select('team_id').in('player_id', kids.map((k) => k.id))
+      : { data: [] as { team_id: string }[] }
+    return [...new Set([...primary, ...(secondary ?? []).map((r) => r.team_id)])]
   }
 
-  const { data: teams } = await supabase
-    .from('teams')
-    .select('id, name')
-    .in('id', teamIds)
-    .eq('club_id', clubId)
-    .order('name')
+  let query = supabase.from('teams').select('id').eq('club_id', clubId)
+  if (role === 'coordinador') query = query.eq('sport', section ?? '')
+  const { data } = await query
+  return (data ?? []).map((t) => t.id)
+}
+
+async function TeamsWeek({
+  clubId,
+  teamIds,
+  weekStart,
+  title,
+}: {
+  clubId: string
+  teamIds: string[]
+  weekStart: string
+  title: string
+}) {
+  const supabase = await createClient()
+
+  const { data: teams } = await supabase.from('teams').select('id, name').in('id', teamIds).eq('club_id', clubId)
   const teamName = new Map((teams ?? []).map((t) => [t.id, t.name]))
 
   const { data: trainings } = await supabase
@@ -125,19 +164,13 @@ async function CoachWeek({ clubId, userId, weekStart }: { clubId: string; userId
     .gte('starts_at', range.from)
     .lt('starts_at', range.to)
 
-  const { data: players } = await supabase
-    .from('players')
-    .select('id, full_name, dorsal, team_id')
-    .in('team_id', teamIds)
-    .order('dorsal', { ascending: true, nullsFirst: false })
-
   const multiTeam = teamIds.length > 1
   const events: CalEvent[] = [
     ...(trainings ?? []).flatMap((t) =>
       trainingEvents(
         { id: t.id, days: (t.days ?? []) as string[], time_txt: t.time_txt },
         {
-          title: multiTeam ? `Entrenament · ${teamName.get(t.team_id) ?? ''}` : 'Entrenament',
+          title: multiTeam ? (teamName.get(t.team_id) ?? 'Entrenament') : 'Entrenament',
           subtitle: effectivePlace(t),
           href: '/dashboard/entrenaments',
         }
@@ -147,8 +180,8 @@ async function CoachWeek({ clubId, userId, weekStart }: { clubId: string; userId
       .filter((m) => m.starts_at)
       .map((m) =>
         matchEvent({ id: m.id, starts_at: m.starts_at as string }, weekStart, {
-          title: `vs ${m.rival}`,
-          subtitle: multiTeam ? teamName.get(m.team_id) : (m.place ?? undefined),
+          title: multiTeam ? `${teamName.get(m.team_id) ?? ''} vs ${m.rival}` : `vs ${m.rival}`,
+          subtitle: m.place ?? undefined,
           href: '/dashboard/partits',
         })
       )
@@ -158,37 +191,12 @@ async function CoachWeek({ clubId, userId, weekStart }: { clubId: string; userId
   return (
     <>
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-zinc-900">La teva setmana</h2>
+        <h2 className="text-lg font-bold text-zinc-900">{title}</h2>
         <WeekNav weekStart={weekStart} hrefFor={(w) => `/dashboard?week=${w}`} />
       </div>
       <div className="mt-3">
         <WeekCalendar days={weekDayHeaders(weekStart)} events={events} />
       </div>
-
-      <h2 className="mt-10 text-lg font-bold text-zinc-900">Els teus jugadors</h2>
-      {(teams ?? []).map((team) => {
-        const squad = (players ?? []).filter((p) => p.team_id === team.id)
-        return (
-          <section key={team.id} className="mt-4">
-            {multiTeam && <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">{team.name}</h3>}
-            {squad.length === 0 && <p className="mt-2 text-sm text-zinc-600">Encara no hi ha jugadors en aquest equip.</p>}
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {squad.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/dashboard/plantilles/jugador/${p.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 hover:border-emerald-300"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-xs font-bold text-white">
-                    {p.dorsal ?? '–'}
-                  </span>
-                  <span className="text-sm font-medium text-zinc-900">{p.full_name}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )
-      })}
     </>
   )
 }
@@ -198,6 +206,7 @@ function StatCard({ label, value, href }: { label: string; value: number; href: 
     <Link href={href} className="min-w-40 flex-1 rounded-2xl border border-zinc-200 bg-white p-5 hover:border-emerald-300">
       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</div>
       <div className="mt-1 text-4xl font-bold text-zinc-900">{value}</div>
+      <div className="mt-1 text-xs font-semibold text-emerald-700">Veure llistat →</div>
     </Link>
   )
 }
