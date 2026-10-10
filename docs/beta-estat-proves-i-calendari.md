@@ -107,16 +107,16 @@ Com fer-les:
 
 | # | Passos | Resultat esperat | OK |
 |---|---|---|---|
-| B1 | Configuració → pujar un logo PNG i triar un color fosc → Desar | Logo al menú i color als botons i al menú, per a tots els rols | [ ] |
-| B2 | Triar un color molt clar (groc) | No es deixa desar i s'explica per què | [ ] |
-| B3 | Pujar un fitxer de més d'1 MB o un SVG | Es rebutja amb missatge | [ ] |
-| B4 | Llicències | Pla "Pilot" i recomptes correctes | [ ] |
-| B5 | Pagaments → + Nou rebut a un jugador amb família vinculada | Rebut creat; la família rep el correu amb el logo i el color del club | [ ] |
-| B6 | Nou rebut a un jugador sense família | Avís en ambre: ningú n'ha rebut l'avís | [ ] |
-| B7 | Clicar Cobrat, Pendent i Vençut; tornar a clicar | El llistat es filtra; el segon clic treu el filtre | [ ] |
-| B8 | Marcar un rebut com a pagat | Passa a Cobrat i els totals s'actualitzen | [ ] |
-| B9 | Comunicat a "Equips concrets" (dos equips) | Només el veuen els entrenadors i les famílies d'aquests equips | [ ] |
-| B10 | Visió 360 | Calendari amb tots els equips del club | [ ] |
+| B1 | Configuració → pujar un logo PNG i triar un color fosc → Desar | Logo al menú i color als botons i al menú, per a tots els rols | [No s’ha pogut pujar: Bucket not found] |
+| B2 | Triar un color molt clar (groc) | No es deixa desar i s'explica per què | [An error occurred in the Server Components render. The specific message is omitted in production builds to avoid leaking sensitive details. A digest property is included on this error instance which may provide additional details about the nature of the error.] |
+| B3 | Pujar un fitxer de més d'1 MB o un SVG | Es rebutja amb missatge | [Pendent] |
+| B4 | Llicències | Pla "Pilot" i recomptes correctes | [La part d'usuaris es incorrecte; jugadors i equips es correcte] |
+| B5 | Pagaments → + Nou rebut a un jugador amb família vinculada | Rebut creat; la família rep el correu amb el logo i el color del club | [Rebut emès. Aquest jugador no té cap familiar vinculat: ningú n’ha rebut l’avís.; No es pot vincular jugadors amb familiars des de la aplicació] |
+| B6 | Nou rebut a un jugador sense família | Avís en ambre: ningú n'ha rebut l'avís | [Ok] |
+| B7 | Clicar Cobrat, Pendent i Vençut; tornar a clicar | El llistat es filtra; el segon clic treu el filtre | [Ok] |
+| B8 | Marcar un rebut com a pagat | Passa a Cobrat i els totals s'actualitzen | [Ok] |
+| B9 | Comunicat a "Equips concrets" (dos equips) | Només el veuen els entrenadors i les famílies d'aquests equips | [Pendent del test complet; filtres correcte] |
+| B10 | Visió 360 | Calendari amb tots els equips del club | [Ok] |
 
 ### C. Coordinació
 
@@ -129,9 +129,9 @@ Com fer-les:
 | C5 | Vincular un jugador a un segon equip | Surt a "també hi entrenen" i a la convocatòria del segon equip | [ ] |
 | C6 | Fitxa del jugador → Canviar d'equip | Historial amb l'equip antic tancat i el nou obert | [ ] |
 | C7 | Instal·lacions → crear pista amb adreça | L'adreça obre Google Maps | [ ] |
-| C8 | Dos equips a la mateixa pista i hora → calendari d'ocupació | Els dos blocs surten en vermell (solapament) | [ ] |
-| C9 | Pagaments de la secció | Només rebuts de la seva secció; els filtres funcionen | [ ] |
-| C10 | Visió 360 | Calendari amb els equips de la seva secció i xifra d'equips correcta | [ ] |
+| C8 | Dos equips a la mateixa pista i hora → calendari d'ocupació | Els dos blocs surten en vermell (solapament) | [Pendent] |
+| C9 | Pagaments de la secció | Només rebuts de la seva secció; els filtres funcionen | [Ok] |
+| C10 | Visió 360 | Calendari amb els equips de la seva secció i xifra d'equips correcta | [Ok] |
 
 ### D. Entrenador
 
