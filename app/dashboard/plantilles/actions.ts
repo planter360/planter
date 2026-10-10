@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
-import { appOrigin, escapeHtml, sendEmail } from '@/lib/email'
+import { appOrigin, emailBrand, emailLayout, escapeHtml, sendEmail } from '@/lib/email'
 import { TEAM_GENDERS, type BulkPlayerRow } from '@/lib/teams'
 
 // Els permisos reals els comproven les funcions SQL (assign_team_coach,
@@ -15,7 +15,7 @@ interface CoachResult {
 
 async function applyCoachChoice(
   team: { id: string; name: string },
-  clubName: string,
+  club: { clubId: string; clubName: string },
   formData: FormData
 ): Promise<CoachResult> {
   const mode = String(formData.get('coach_mode') ?? 'none')
@@ -43,13 +43,18 @@ async function applyCoachChoice(
   if (error) throw new Error(error.message)
 
   const origin = await appOrigin()
-  const greeting = fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'
   const sent = await sendEmail({
     to: email,
-    subject: `T'han afegit com a entrenador/a de ${team.name} a Planter`,
-    html: `<p>${greeting}</p>
-<p>${escapeHtml(clubName)} t'ha afegit com a entrenador/a de l'equip <strong>${escapeHtml(team.name)}</strong> a Planter.</p>
-<p>Per entrar, ves a <a href="${origin}/login">${origin}/login</a> i posa aquest mateix correu (${escapeHtml(email)}). Rebràs un enllaç d'accés, sense contrasenyes.</p>`,
+    subject: `${club.clubName}: t'han afegit com a entrenador/a de ${team.name}`,
+    html: emailLayout({
+      origin,
+      brand: await emailBrand(club.clubId, club.clubName),
+      heading: `Benvingut/da a ${team.name}`,
+      bodyHtml: `<p style="margin:0 0 12px">${fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'}</p>
+<p style="margin:0 0 12px">${escapeHtml(club.clubName)} t'ha afegit com a entrenador/a de l'equip <strong>${escapeHtml(team.name)}</strong>. Des de Planter podràs passar llista, fer convocatòries i parlar amb les famílies.</p>
+<p style="margin:0">Per entrar, posa aquest correu (<strong>${escapeHtml(email)}</strong>) a la pantalla d'accés i rebràs un enllaç, sense contrasenyes.</p>`,
+      cta: { label: 'Entrar a Planter', url: `${origin}/login` },
+    }),
   })
 
   if (status === 'linked') {
@@ -89,7 +94,7 @@ export async function createTeam(formData: FormData): Promise<CoachResult> {
 
   let result: CoachResult
   try {
-    result = await applyCoachChoice(team, active.clubName, formData)
+    result = await applyCoachChoice(team, active, formData)
   } catch (e) {
     result = {
       warning: true,
@@ -109,7 +114,7 @@ export async function assignCoach(teamId: string, formData: FormData): Promise<C
   const { data: team } = await supabase.from('teams').select('id, name').eq('id', teamId).maybeSingle()
   if (!team) throw new Error('Equip no trobat')
 
-  const result = await applyCoachChoice(team, active.clubName, formData)
+  const result = await applyCoachChoice(team, active, formData)
 
   revalidatePath('/dashboard/plantilles', 'layout')
   return result
@@ -135,10 +140,16 @@ export async function inviteGuardian(playerId: string, formData: FormData): Prom
   const origin = await appOrigin()
   const sent = await sendEmail({
     to: email,
-    subject: `Accés a Planter · ${player?.full_name ?? 'el teu fill/a'}`,
-    html: `<p>${fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'}</p>
-<p>${escapeHtml(active.clubName)} t'ha donat accés a Planter com a familiar de <strong>${escapeHtml(player?.full_name ?? '')}</strong>: hi veuràs els seus horaris, partits, rebuts i comunicats del club.</p>
-<p>Per entrar, ves a <a href="${origin}/login">${origin}/login</a> i posa aquest mateix correu (${escapeHtml(email)}). Rebràs un enllaç d'accés, sense contrasenyes.</p>`,
+    subject: `${active.clubName}: accés a Planter per seguir ${player?.full_name ?? 'el teu fill/a'}`,
+    html: emailLayout({
+      origin,
+      brand: await emailBrand(active.clubId, active.clubName),
+      heading: 'Ja pots seguir el club des de Planter',
+      bodyHtml: `<p style="margin:0 0 12px">${fullName ? `Hola ${escapeHtml(fullName)},` : 'Hola,'}</p>
+<p style="margin:0 0 12px">${escapeHtml(active.clubName)} t'ha donat accés com a familiar de <strong>${escapeHtml(player?.full_name ?? '')}</strong>. Hi trobaràs els horaris, les convocatòries, els rebuts i els comunicats del club, tot en un sol lloc.</p>
+<p style="margin:0">Per entrar, posa aquest correu (<strong>${escapeHtml(email)}</strong>) a la pantalla d'accés i rebràs un enllaç, sense contrasenyes.</p>`,
+      cta: { label: 'Entrar a Planter', url: `${origin}/login` },
+    }),
   })
 
   revalidatePath(`/dashboard/plantilles/jugador/${playerId}`)

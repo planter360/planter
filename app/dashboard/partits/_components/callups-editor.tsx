@@ -19,7 +19,7 @@ export function CallupsEditor({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-emerald-700 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-strong hover:underline">
         {calledUpIds.length > 0 ? 'Editar convocatòria' : 'Fer la convocatòria'}
       </button>
     )
@@ -83,7 +83,7 @@ export function CallupsEditor({
                 setOpen(false)
               })
             }
-            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            className="rounded-xl bg-brand-strong px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
           >
             Enviar convocatòria
           </button>

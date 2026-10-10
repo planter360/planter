@@ -102,7 +102,7 @@ export function NewReceiptForm({ players }: { players: PlayerOption[] }) {
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Emetre rebut
         </button>
       </div>

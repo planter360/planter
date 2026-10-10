@@ -18,7 +18,7 @@ export function AssessmentForm({ playerId }: { playerId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-3 text-xs font-semibold text-emerald-700 underline underline-offset-2"
+        className="mt-3 text-xs font-semibold text-brand-strong underline underline-offset-2"
       >
         + Nova valoració
       </button>
@@ -58,7 +58,7 @@ export function AssessmentForm({ playerId }: { playerId: string }) {
           className="mt-1 rounded-lg border border-zinc-300 px-2 py-1.5 text-sm font-normal normal-case text-zinc-900"
         />
       </label>
-      <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+      <button type="submit" className="rounded-lg bg-brand-strong px-3 py-1.5 text-xs font-semibold text-white">
         Desa
       </button>
       <button type="button" onClick={() => setOpen(false)} className="text-xs font-semibold text-zinc-500">

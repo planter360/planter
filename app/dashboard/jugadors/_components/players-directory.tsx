@@ -67,7 +67,7 @@ export function PlayersDirectory({ players }: { players: DirectoryPlayer[] }) {
           <Link
             key={p.id}
             href={`/dashboard/plantilles/jugador/${p.id}`}
-            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 hover:border-emerald-300"
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 hover:border-brand"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-xs font-bold text-white">
               {p.dorsal ?? '–'}

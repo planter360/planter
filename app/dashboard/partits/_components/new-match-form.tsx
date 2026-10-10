@@ -19,7 +19,7 @@ export function NewMatchForm({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+      <button onClick={() => setOpen(true)} className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
         + Nou partit
       </button>
     )
@@ -124,7 +124,7 @@ export function NewMatchForm({
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Crear partit
         </button>
       </div>

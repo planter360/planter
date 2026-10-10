@@ -82,7 +82,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 <li key={k.id}>
                   <Link
                     href={`/dashboard/plantilles/jugador/${k.id}`}
-                    className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-900 hover:border-emerald-300"
+                    className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-900 hover:border-brand"
                   >
                     {k.full_name}
                   </Link>
@@ -203,10 +203,10 @@ async function TeamsWeek({
 
 function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
   return (
-    <Link href={href} className="min-w-40 flex-1 rounded-2xl border border-zinc-200 bg-white p-5 hover:border-emerald-300">
+    <Link href={href} className="min-w-40 flex-1 rounded-2xl border border-zinc-200 bg-white p-5 hover:border-brand">
       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</div>
       <div className="mt-1 text-4xl font-bold text-zinc-900">{value}</div>
-      <div className="mt-1 text-xs font-semibold text-emerald-700">Veure llistat →</div>
+      <div className="mt-1 text-xs font-semibold text-brand-strong">Veure llistat →</div>
     </Link>
   )
 }

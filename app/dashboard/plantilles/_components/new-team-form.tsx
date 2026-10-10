@@ -99,7 +99,7 @@ export function NewTeamForm({ sectionLabel, coaches }: { sectionLabel: string; c
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {saving ? 'Creant…' : 'Crear equip'}
         </button>

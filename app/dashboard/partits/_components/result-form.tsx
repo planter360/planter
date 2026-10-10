@@ -9,7 +9,7 @@ export function ResultForm({ matchId, status, result }: { matchId: string; statu
   if (!open) {
     return (
       <div className="flex gap-3">
-        <button onClick={() => setOpen(true)} className="text-xs font-semibold text-emerald-700 hover:underline">
+        <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-strong hover:underline">
           {status === 'jugat' ? 'Editar resultat' : 'Registrar resultat'}
         </button>
         <button
@@ -62,7 +62,7 @@ export function ResultForm({ matchId, status, result }: { matchId: string; statu
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-3 py-1.5 text-xs font-semibold text-white">
           Desar
         </button>
       </div>

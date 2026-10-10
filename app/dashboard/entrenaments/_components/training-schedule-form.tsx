@@ -25,7 +25,7 @@ export function TrainingScheduleForm({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-emerald-700 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-strong hover:underline">
         {initialTime ? 'Editar horari' : 'Definir horari setmanal'}
       </button>
     )
@@ -82,7 +82,7 @@ export function TrainingScheduleForm({
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Desar
         </button>
       </div>

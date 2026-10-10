@@ -28,7 +28,7 @@ export function FamilyCard({ playerId, guardians }: { playerId: string; guardian
               setOpen(true)
               setNotice('')
             }}
-            className="text-xs font-semibold text-emerald-700 hover:underline"
+            className="text-xs font-semibold text-brand-strong hover:underline"
           >
             + Afegir familiar
           </button>
@@ -90,7 +90,7 @@ export function FamilyCard({ playerId, guardians }: { playerId: string; guardian
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+            className="rounded-lg bg-brand-strong px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
           >
             {saving ? 'Afegint…' : 'Afegir'}
           </button>

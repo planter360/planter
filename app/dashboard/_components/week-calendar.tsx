@@ -65,7 +65,7 @@ export function WeekCalendar({
               key={d.date}
               className={
                 'border-b border-l border-zinc-200 px-2 py-2 text-xs font-semibold uppercase ' +
-                (d.date === today ? 'text-emerald-700' : 'text-zinc-500')
+                (d.date === today ? 'text-brand-strong' : 'text-zinc-500')
               }
             >
               {d.label}
@@ -83,7 +83,7 @@ export function WeekCalendar({
           {days.map((d, dayIndex) => (
             <div
               key={d.date}
-              className={'relative border-l border-zinc-200 ' + (d.date === today ? 'bg-emerald-50/30' : '')}
+              className={'relative border-l border-zinc-200 ' + (d.date === today ? 'bg-brand-soft' : '')}
               style={{ height }}
             >
               {hours.map((h, i) => (
@@ -162,7 +162,7 @@ function AgendaList({
         <section key={d.date}>
           <h3
             className={
-              'mb-1.5 text-xs font-semibold uppercase tracking-wide ' + (d.date === today ? 'text-emerald-700' : 'text-zinc-500')
+              'mb-1.5 text-xs font-semibold uppercase tracking-wide ' + (d.date === today ? 'text-brand-strong' : 'text-zinc-500')
             }
           >
             {d.label}

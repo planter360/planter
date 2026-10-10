@@ -23,7 +23,7 @@ export function MatchPlanEditor({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-3 text-xs font-semibold text-emerald-700 underline underline-offset-2"
+        className="mt-3 text-xs font-semibold text-brand-strong underline underline-offset-2"
       >
         + Afegeix pla de partit
       </button>
@@ -54,7 +54,7 @@ export function MatchPlanEditor({
                 onClick={() => toggle(p.id)}
                 className={
                   'rounded-full px-3 py-1 text-xs font-semibold ' +
-                  (linkedIds.includes(p.id) ? 'bg-emerald-600 text-white' : 'bg-zinc-100 text-zinc-600')
+                  (linkedIds.includes(p.id) ? 'bg-brand-strong text-white' : 'bg-zinc-100 text-zinc-600')
                 }
               >
                 {p.full_name}
@@ -71,7 +71,7 @@ export function MatchPlanEditor({
             await saveMatchPlan(matchId, content, linkedIds)
             setSaving(false)
           }}
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+          className="rounded-lg bg-brand-strong px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
         >
           {saving ? 'Desant…' : 'Desa el pla'}
         </button>

@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import { getSession } from '@/lib/membership'
 import { allowedModules } from '@/lib/access'
+import { getClubBranding } from '@/lib/club'
 import { Sidebar } from './_components/sidebar'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -17,12 +19,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const modules = allowedModules(active.role)
+  const branding = await getClubBranding(active.clubId)
+  const brandStyle = branding.primaryColor ? ({ '--brand': branding.primaryColor } as CSSProperties) : undefined
 
   return (
-    <div className="flex flex-1 flex-col md:flex-row">
+    <div className="flex flex-1 flex-col md:flex-row" style={brandStyle}>
       <Sidebar
         modules={modules}
         clubName={active.clubName}
+        clubLogoUrl={branding.logoUrl}
         role={active.role}
         userEmail={user.email ?? ''}
         memberships={memberships}

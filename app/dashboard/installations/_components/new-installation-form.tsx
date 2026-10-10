@@ -10,7 +10,7 @@ export function NewInstallationForm() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+        className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white"
       >
         + Nova instal·lació
       </button>
@@ -50,7 +50,7 @@ export function NewInstallationForm() {
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Desar
         </button>
       </div>

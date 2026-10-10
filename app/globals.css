@@ -13,9 +13,18 @@
   --planter-text-soft: #5D6B61;
   --planter-amber: #E39A2E;      /* pendents */
   --planter-red: #D65050;        /* vençuts, errors */
+
+  /* Color del club: el layout del tauler el sobreescriu amb
+     clubs.primary_color. "strong" és el que porta text blanc a sobre;
+     la mescla es fa en sRGB perquè lib/color.ts en pugui validar el
+     contrast exactament abans de desar-lo. */
+  --brand: var(--planter-green);
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-strong: color-mix(in srgb, var(--brand) 75%, black);
+  --color-brand-soft: color-mix(in srgb, var(--brand) 10%, white);
   --color-background: var(--planter-bg);
   --color-foreground: var(--planter-text);
   --font-sans: var(--font-inter);

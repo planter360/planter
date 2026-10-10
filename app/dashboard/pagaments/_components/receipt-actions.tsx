@@ -21,7 +21,7 @@ export function ReceiptActions({
       <button
         disabled={pending}
         onClick={() => startTransition(() => markReceiptStatus(receiptId, 'pagat'))}
-        className="text-xs font-semibold text-emerald-700 hover:underline disabled:opacity-60"
+        className="text-xs font-semibold text-brand-strong hover:underline disabled:opacity-60"
       >
         Marcar pagat
       </button>

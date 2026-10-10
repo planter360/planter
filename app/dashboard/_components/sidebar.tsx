@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { Logomark } from '@/components/Logomark'
 import { usePathname } from 'next/navigation'
 import { signOut } from '../actions'
 import { MembershipSwitcher } from './membership-switcher'
@@ -16,6 +18,7 @@ function isActive(pathname: string, href: string): boolean {
 export function Sidebar({
   modules,
   clubName,
+  clubLogoUrl,
   role,
   userEmail,
   memberships,
@@ -23,6 +26,7 @@ export function Sidebar({
 }: {
   modules: ModuleDef[]
   clubName: string
+  clubLogoUrl: string | null
   role: Role
   userEmail: string
   memberships: Membership[]
@@ -41,7 +45,7 @@ export function Sidebar({
             onClick={() => setOpen(false)}
             className={
               'block rounded-lg px-3 py-2.5 text-sm font-medium md:py-2 ' +
-              (isActive(pathname, m.href) ? 'bg-zinc-900 text-white' : 'text-zinc-700 hover:bg-zinc-200')
+              (isActive(pathname, m.href) ? 'bg-brand-strong text-white' : 'text-zinc-700 hover:bg-zinc-200')
             }
           >
             {m.label}
@@ -62,10 +66,24 @@ export function Sidebar({
     </>
   )
 
+  // Co-marca: el club en primer pla, Planter com a plataforma.
   const brand = (
-    <div className="min-w-0">
-      <div className="text-lg font-bold text-zinc-900">Planter</div>
-      <div className="truncate text-xs text-zinc-500">{clubName}</div>
+    <div className="flex min-w-0 items-center gap-2.5">
+      {clubLogoUrl ? (
+        <Image
+          src={clubLogoUrl}
+          alt=""
+          width={36}
+          height={36}
+          className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain"
+        />
+      ) : (
+        <Logomark size={36} />
+      )}
+      <div className="min-w-0">
+        <div className="truncate text-sm font-bold text-zinc-900">{clubName}</div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">Planter</div>
+      </div>
     </div>
   )
 

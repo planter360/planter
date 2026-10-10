@@ -11,7 +11,7 @@ export function LinkSecondaryTeam({ playerId, teamOptions }: { playerId: string;
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-emerald-700 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-strong hover:underline">
         + Vincula a un altre equip
       </button>
     )
@@ -40,7 +40,7 @@ export function LinkSecondaryTeam({ playerId, teamOptions }: { playerId: string;
           </option>
         ))}
       </select>
-      <button type="submit" disabled={pending} className="text-xs font-semibold text-emerald-700 hover:underline disabled:opacity-60">
+      <button type="submit" disabled={pending} className="text-xs font-semibold text-brand-strong hover:underline disabled:opacity-60">
         Vincula
       </button>
       <button type="button" onClick={() => setOpen(false)} className="text-xs text-zinc-500 hover:underline">

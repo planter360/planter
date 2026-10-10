@@ -19,7 +19,7 @@ export function AssignCoachForm({ teamId, coaches }: { teamId: string; coaches: 
             setOpen(true)
             setNotice('')
           }}
-          className="text-xs font-semibold text-emerald-700 hover:underline"
+          className="text-xs font-semibold text-brand-strong hover:underline"
         >
           Assignar entrenador/a
         </button>
@@ -67,7 +67,7 @@ export function AssignCoachForm({ teamId, coaches }: { teamId: string; coaches: 
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {saving ? 'Desant…' : 'Assignar'}
         </button>

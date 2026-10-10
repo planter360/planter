@@ -128,7 +128,7 @@ export function NewAnnouncementForm({
       {role === 'entrenador' && teams && teams.length > 1 && (
         <div className="mb-4">
           <p className="text-xs font-semibold uppercase text-zinc-500">Equips (selecciona un o més)</p>
-          <div className="mt-2 flex flex-wrap gap-2">{teams.map((t) => teamPill(t, 'bg-emerald-600 text-white'))}</div>
+          <div className="mt-2 flex flex-wrap gap-2">{teams.map((t) => teamPill(t, 'bg-brand-strong text-white'))}</div>
         </div>
       )}
       {role === 'entrenador' && teams && teams.length === 1 && (
@@ -167,7 +167,7 @@ export function NewAnnouncementForm({
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Enviar
         </button>
       </div>

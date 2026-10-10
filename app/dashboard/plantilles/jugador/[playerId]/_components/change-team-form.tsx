@@ -11,7 +11,7 @@ export function ChangeTeamForm({ playerId, teamOptions }: { playerId: string; te
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-emerald-700 hover:underline">
+      <button onClick={() => setOpen(true)} className="text-xs font-semibold text-brand-strong hover:underline">
         Canviar d&apos;equip
       </button>
     )
@@ -48,7 +48,7 @@ export function ChangeTeamForm({ playerId, teamOptions }: { playerId: string; te
       <button
         type="submit"
         disabled={saving}
-        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+        className="rounded-lg bg-brand-strong px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
       >
         {saving ? 'Movent…' : 'Moure'}
       </button>

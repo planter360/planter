@@ -127,7 +127,7 @@ export default async function InstallationsPage({
                       href={mapsSearchUrl(selected.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-emerald-700 underline underline-offset-2"
+                      className="text-xs text-brand-strong underline underline-offset-2"
                     >
                       {selected.address}
                     </a>
@@ -155,7 +155,7 @@ export default async function InstallationsPage({
                       href={mapsSearchUrl(i.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-emerald-700 underline underline-offset-2"
+                      className="text-xs text-brand-strong underline underline-offset-2"
                     >
                       {i.address}
                     </a>

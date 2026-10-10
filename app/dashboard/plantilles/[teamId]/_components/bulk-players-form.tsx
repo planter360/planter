@@ -113,7 +113,7 @@ export function BulkPlayersForm({ teamId }: { teamId: string }) {
           type="button"
           onClick={save}
           disabled={saving || rows.length === 0}
-          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
           {saving ? 'Desant…' : `Donar d'alta ${rows.length} jugador${rows.length === 1 ? '' : 's'}`}
         </button>

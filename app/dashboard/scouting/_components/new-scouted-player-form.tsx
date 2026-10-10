@@ -11,7 +11,7 @@ export function NewScoutedPlayerForm({ sports }: { sports: string[] }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+        className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white"
       >
         + Nou jugador vigilat
       </button>
@@ -94,7 +94,7 @@ export function NewScoutedPlayerForm({ sports }: { sports: string[] }) {
         >
           Cancel·lar
         </button>
-        <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-brand-strong px-4 py-2 text-sm font-semibold text-white">
           Desar
         </button>
       </div>

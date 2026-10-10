@@ -33,7 +33,7 @@ export default async function PlantillesPage({ searchParams }: { searchParams: P
             <Link
               key={k.id}
               href={`/dashboard/plantilles/jugador/${k.id}`}
-              className="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-emerald-300"
+              className="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-brand"
             >
               <div className="font-semibold text-zinc-900">{k.full_name}</div>
               <div className="mt-1 text-sm text-zinc-600">
@@ -128,7 +128,7 @@ export default async function PlantillesPage({ searchParams }: { searchParams: P
             </div>
             <Link
               href={`/dashboard/plantilles/${t.id}`}
-              className="mt-4 inline-block text-xs font-semibold text-emerald-700 hover:underline"
+              className="mt-4 inline-block text-xs font-semibold text-brand-strong hover:underline"
             >
               Veure jugadors →
             </Link>

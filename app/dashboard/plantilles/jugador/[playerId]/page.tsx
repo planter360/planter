@@ -266,7 +266,7 @@ function Card({ title, href, children }: { title: string; href?: string; childre
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{title}</h2>
         {href && (
-          <Link href={href} className="text-xs font-semibold text-emerald-700 hover:underline">
+          <Link href={href} className="text-xs font-semibold text-brand-strong hover:underline">
             Veure →
           </Link>
         )}

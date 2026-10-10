@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/membership'
 import { eurosToCents, formatEuros } from '@/lib/money'
-import { appOrigin, escapeHtml, sendEmail } from '@/lib/email'
+import { appOrigin, emailBrand, emailLayout, escapeHtml, sendEmail } from '@/lib/email'
 
 export async function createReceipt(formData: FormData): Promise<{ notice?: string; warning?: boolean }> {
   const { active } = await getSession()
@@ -40,17 +40,20 @@ export async function createReceipt(formData: FormData): Promise<{ notice?: stri
   const { data: player } = await supabase.from('players').select('full_name').eq('id', playerId).maybeSingle()
   const origin = await appOrigin()
   const due = new Date(`${dueDate}T12:00:00Z`).toLocaleDateString('ca-ES')
+  const html = emailLayout({
+    origin,
+    brand: await emailBrand(active.clubId, active.clubName),
+    heading: 'Tens un rebut nou',
+    bodyHtml: `<p style="margin:0 0 16px">${escapeHtml(active.clubName)} ha emès un rebut per a <strong>${escapeHtml(player?.full_name ?? '')}</strong>.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #E2E7DF;border-radius:12px">
+  <tr><td style="padding:12px 16px;font-size:13px;color:#5D6B61">Concepte</td><td style="padding:12px 16px;text-align:right;font-weight:bold">${escapeHtml(concept)}</td></tr>
+  <tr><td style="padding:12px 16px;border-top:1px solid #E2E7DF;font-size:13px;color:#5D6B61">Import</td><td style="padding:12px 16px;border-top:1px solid #E2E7DF;text-align:right;font-size:18px;font-weight:bold">${escapeHtml(formatEuros(amountCents))}</td></tr>
+  <tr><td style="padding:12px 16px;border-top:1px solid #E2E7DF;font-size:13px;color:#5D6B61">Venciment</td><td style="padding:12px 16px;border-top:1px solid #E2E7DF;text-align:right">${due}</td></tr>
+</table>`,
+    cta: { label: 'Veure els meus rebuts', url: `${origin}/dashboard/pagaments` },
+  })
   const results = await Promise.all(
-    emails.map((to) =>
-      sendEmail({
-        to,
-        subject: `Nou rebut de ${active.clubName}: ${concept}`,
-        html: `<p>Hola,</p>
-<p>${escapeHtml(active.clubName)} ha emès un rebut per a <strong>${escapeHtml(player?.full_name ?? '')}</strong>:</p>
-<p><strong>${escapeHtml(concept)}</strong> · ${escapeHtml(formatEuros(amountCents))} · venciment ${due}</p>
-<p>El pots consultar a <a href="${origin}/dashboard/pagaments">${origin}/dashboard/pagaments</a>.</p>`,
-      })
-    )
+    emails.map((to) => sendEmail({ to, subject: `${active.clubName}: nou rebut · ${concept}`, html }))
   )
   const sent = results.filter(Boolean).length
   if (sent === emails.length) return { notice: `Rebut emès i avís enviat a ${emails.join(', ')}.` }

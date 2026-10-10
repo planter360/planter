@@ -22,6 +22,7 @@ export type ModuleId =
   | 'comunicacions'
   | 'llicencies'
   | 'installations'
+  | 'club'
 
 export interface ModuleDef {
   id: ModuleId
@@ -40,6 +41,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'comunicacions', label: 'Comunicacions', href: '/dashboard/comunicacions' },
   { id: 'installations', label: 'Instal·lacions', href: '/dashboard/installations' },
   { id: 'llicencies', label: 'Llicències', href: '/dashboard/llicencies' },
+  { id: 'club', label: 'Configuració', href: '/dashboard/club' },
 ]
 
 // Matriu de visibilitat — especificacio-crm-clubs-esportius.md §2.1
@@ -54,6 +56,7 @@ export const ACCESS: Record<ModuleId, Record<Role, AccessLevel>> = {
   comunicacions: { admin: 'full', coordinador: 'full', entrenador: 'full', familia: 'partial' },
   installations: { admin: 'full', coordinador: 'full', entrenador: null, familia: null },
   llicencies: { admin: 'read', coordinador: null, entrenador: null, familia: null },
+  club: { admin: 'full', coordinador: null, entrenador: null, familia: null },
 }
 
 export const VIS_NOTE: Partial<Record<ModuleId, Partial<Record<Role, string>>>> = {
@@ -98,6 +101,9 @@ export const VIS_NOTE: Partial<Record<ModuleId, Partial<Record<Role, string>>>> 
   installations: {
     admin: "Gestiones el llistat d'instal·lacions del club, amb la seva adreça.",
     coordinador: "Gestiones el llistat d'instal·lacions del club, amb la seva adreça.",
+  },
+  club: {
+    admin: 'Logo i color del club, que es veuen al tauler i als correus.',
   },
 }
 
